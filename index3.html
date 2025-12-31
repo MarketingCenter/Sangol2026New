@@ -1,0 +1,5904 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sangol</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #111827;
+      color: #e5e7eb;
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+    h1, h2, h3 {
+      margin: 8px 0;
+    }
+
+    .viewport {
+      width: 100vw;
+      min-height: 100vh;
+      overflow: visible;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .viewport-scale {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform-origin: top center;
+      will-change: transform;
+    }
+
+    .app-root {
+      width: 100%;
+      height: 100%;
+      max-width: 1400px;
+      max-height: 900px;
+      display: flex;
+      flex-direction: column;
+      padding: 0 16px 8px;
+      box-sizing: border-box;
+      transform: translateY(150px);
+    }
+
+    .top-hud {
+      height: clamp(60px, 12vh, 120px);
+      display: flex;
+      align-items: center;
+    }
+
+    .board-area {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 0;
+    }
+
+    .bottom-hand {
+      height: clamp(140px, 20vh, 220px);
+      display: flex;
+      align-items: flex-end;
+    }
+
+    .main-layout {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 16px;
+      margin-top: 0;
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+    }
+
+    .info-panel {
+      max-width: 280px;
+      min-width: 220px;
+      padding-top: 8px;
+      transition: max-width 0.2s ease, min-width 0.2s ease;
+    }
+
+    .info-panel h1 {
+      margin-top: 8px;
+      margin-bottom: 8px;
+      font-size: 20px;
+    }
+
+    .info-panel .info-line {
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .info-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .info-title {
+      flex: 1;
+    }
+
+    .info-toggle-btn {
+      border: 1px solid #4b5563;
+      background: #020617;
+      color: #e5e7eb;
+      border-radius: 999px;
+      width: 28px;
+      height: 28px;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .info-content {
+      margin-top: 4px;
+    }
+    .history-panel {
+      margin-top: 12px;
+      border-top: 1px solid #374151;
+      padding-top: 8px;
+    }
+    .history-title {
+      font-size: 14px;
+      margin: 4px 0;
+      color: #f3f4f6;
+    }
+    .history-list {
+      max-height: 220px;
+      overflow-y: auto;
+      font-size: 12px;
+      line-height: 1.4;
+      color: #d1d5db;
+      padding-right: 4px;
+    }
+    .history-item {
+      margin-bottom: 6px;
+      border-left: 2px solid #4b5563;
+      padding-left: 6px;
+    }
+    .history-meta {
+      color: #9ca3af;
+      font-size: 11px;
+    }
+
+    .info-panel.collapsed {
+      max-width: 40px;
+      min-width: 40px;
+    }
+    .info-panel.collapsed .info-title {
+      display: none;
+    }
+    .info-panel.collapsed .info-content {
+      display: none;
+    }
+
+    .game-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      flex: 1;
+      height: 100%;
+      min-height: 0;
+    }
+
+    .row {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: nowrap;
+      align-items: stretch;
+      height: 100%;
+    }
+
+    .field-column {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      flex: 1;
+      min-width: 320px;
+      max-width: 900px;
+      box-sizing: border-box;
+      min-height: 0;
+    }
+
+    .player-panel {
+      border: 1px solid #4b5563;
+      border-radius: 8px;
+      padding: 8px;
+      background: #020617;
+      transition: box-shadow 0.15s ease, border-color 0.15s ease;
+      box-sizing: border-box;
+    }
+    .player-panel.current-player {
+      border-color: #22c55e;
+      box-shadow: 0 0 0 1px #22c55e55;
+    }
+
+    .player-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .badge-turn {
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #22c55e;
+      color: #022c22;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge-turn.opponent {
+      background: #f97316;
+      color: #4b1c04;
+    }
+    .section-title {
+      font-size: 14px;
+      margin: 6px 0;
+      color: #9ca3af;
+    }
+    .zone-row {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+    .slot {
+      width: 110px;
+      height: 150px;
+      border-radius: 8px;
+      border: 1px dashed #4b5563;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      text-align: center;
+      background: #020617;
+      position: relative;
+      padding: 4px;
+      box-sizing: border-box;
+    }
+    .card {
+      width: 100%;
+      height: 100%;
+      border-radius: 6px;
+      padding: 4px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+      align-items: center;
+      text-align: center;
+    }
+    .card.monster { background: #1e293b; }
+    .card.spell  { background: #1d3557; }
+    .card.trap   { background: #4b1d57; }
+    .card.hidden-hand {
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card-name {
+      font-weight: 600;
+      font-size: 12px;
+    }
+    .card-name.effect-name {
+      color: #CCC2FF;
+    }
+    .card-level {
+      font-size: 11px;
+      color: #eab308;
+    }
+    .card-class {
+      font-size: 11px;
+      color: #f97316;
+      margin-top: 2px;
+    }
+    .card-power {
+      font-size: 11px;
+      margin-top: 4px;
+    }
+    .card-effect {
+      font-size: 10px;
+      color: #a5b4fc;
+      margin-top: 4px;
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+      line-clamp: 4;
+      overflow: hidden;
+    }
+    .card-footer {
+      font-size: 10px;
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 4px;
+      align-items: center;
+      margin-top: 4px;
+      justify-content: center;
+    }
+    .tag {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      background: #374151;
+      color: #e5e7eb;
+    }
+    .hidden-hand {
+      background: #1f2937 !important;
+      border: 1px solid #374151;
+    }
+    .button {
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: none;
+      background: #3b82f6;
+      color: white;
+      font-size: 13px;
+      cursor: pointer;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .button:disabled {
+      background: #4b5563;
+      cursor: not-allowed;
+    }
+    .small-button {
+      padding: 2px 4px;
+      font-size: 10px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      background: #525252;
+      color: #f9fafb;
+    }
+    .small-button.icon-button {
+      padding: 2px 3px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+    }
+    .small-button.icon-button svg {
+      width: 12px;
+      height: 12px;
+      stroke: #f9fafb;
+      fill: none;
+      stroke-width: 2;
+    }
+    .hand {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+    .hand-card {
+      width: 110px;
+      height: 150px;
+    }
+    .info-line {
+      font-size: 12px;
+      color: #9ca3af;
+    }
+
+    .controls-panel {
+      border: 1px solid #4b5563;
+      border-radius: 8px;
+      padding: 8px;
+      min-width: 220px;
+      max-width: 260px;
+      background: #020617;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-sizing: border-box;
+    }
+    .controls-panel h2 {
+      font-size: 14px;
+      margin: 0 0 4px 0;
+    }
+    .conn-panel {
+      border: 1px solid #374151;
+      border-radius: 6px;
+      padding: 6px;
+      background: #0b1220;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .conn-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: stretch;
+    }
+    .conn-room {
+      font-size: 12px;
+      color: #a5b4fc;
+    }
+    .conn-status {
+      font-size: 12px;
+      color: #e5e7eb;
+    }
+    .conn-btn {
+      flex: 1 1 120px;
+      padding: 8px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: #022c22;
+      box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+    }
+    .conn-btn:hover {
+      filter: brightness(1.05);
+    }
+    .controls-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .turn-timer {
+      font-size: 16px;
+      font-weight: 700;
+      text-align: center;
+      padding: 6px;
+      border: 1px solid #374151;
+      border-radius: 8px;
+      background: #111827;
+      color: #fef3c7;
+    }
+
+    #text-status {
+      white-space: pre-wrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 11px;
+      color: #d1d5db;
+      border-top: 1px solid #374151;
+      padding-top: 6px;
+      margin-top: 4px;
+    }
+
+    .zone-with-side {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      flex-wrap: nowrap;
+    }
+    .side-zone {
+      width: 80px;
+      min-height: 150px;
+      border-radius: 8px;
+      border: 1px solid #4b5563;
+      background: #020617;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      box-sizing: border-box;
+      text-align: center;
+      font-size: 11px;
+    }
+    .side-zone-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .side-zone-count {
+      font-size: 11px;
+      color: #e5e7eb;
+    }
+
+    .graveyard-clickable {
+      cursor: pointer;
+      border-style: solid;
+    }
+    .graveyard-clickable:hover {
+      border-color: #e5e7eb;
+      box-shadow: 0 0 0 1px #e5e7eb55;
+    }
+    .graveyard-hint {
+      font-size: 10px;
+      color: #9ca3af;
+      margin-top: 4px;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+    }
+    #notice-modal {
+      z-index: 80;
+    }
+    #hidden-modal {
+      z-index: 70;
+    }
+    .modal.hidden {
+      display: none;
+    }
+    .modal-dialog {
+      background: #020617;
+      border-radius: 8px;
+      border: 1px solid #4b5563;
+      padding: 12px;
+      box-sizing: border-box;
+      max-width: 380px;
+      width: 90%;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+      font-size: 12px;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .modal-title {
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .modal-close-btn {
+      border: none;
+      background: #4b5563;
+      color: #f9fafb;
+      border-radius: 999px;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+    .modal-list {
+      list-style: none;
+      padding-left: 0;
+      margin: 0;
+      max-height: 260px;
+      overflow-y: auto;
+    }
+    .modal-list li {
+      padding: 4px 0;
+      border-bottom: 1px solid #1f2933;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      justify-content: center;
+    }
+    .notice-actions {
+      margin-top: 10px;
+      display: flex;
+      justify-content: flex-end;
+    }
+    .gameover-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .deck-panel {
+      border: 1px solid #334155;
+      border-radius: 6px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: #0f172a;
+    }
+    .deck-meta {
+      font-size: 11px;
+      color: #94a3b8;
+    }
+    .deck-builder {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .deck-list,
+    .deck-catalog {
+      border: 1px solid #334155;
+      border-radius: 6px;
+      padding: 8px;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+    .deck-catalog {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: flex-start;
+    }
+    .deck-catalog .hand-card {
+      width: 110px;
+      height: 150px;
+    }
+    .deck-card-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      padding: 4px 0;
+      border-bottom: 1px dashed #1f2937;
+    }
+    .deck-card-row:last-child {
+      border-bottom: none;
+    }
+    .deck-controls {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+    .deck-tabs {
+      display: flex;
+      gap: 6px;
+      margin: 8px 0;
+      flex-wrap: wrap;
+    }
+    .deck-tab {
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid #334155;
+      background: #0b1220;
+      color: #e2e8f0;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .deck-tab.active {
+      background: #1d4ed8;
+      border-color: #1d4ed8;
+      color: #fff;
+    }
+    .deck-input {
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid #334155;
+      background: #0b1220;
+      color: #e2e8f0;
+      font-size: 12px;
+      box-sizing: border-box;
+    }
+    .gameover-status {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="viewport">
+    <div class="viewport-scale" id="viewport-scale">
+      <div class="app-root">
+        <div class="top-hud"></div>
+        <div class="board-area">
+          <div class="main-layout">
+            <!-- Sol: collapsible info panel -->
+            <div class="info-panel" id="info-panel">
+      <div class="info-header">
+        <div class="info-title">
+          <h1>Sangol</h1>
+        </div>
+        <button class="info-toggle-btn" id="info-toggle-btn">‹</button>
+      </div>
+      <div class="info-content" id="info-content">
+        <p class="info-line">
+          Her oyuncunun destesinde <strong>30 kart</strong> vardır. Oyuna <strong>elde 5 kartla</strong> başlanır (destede 25 kart kalır).<br />
+          Her tur en fazla <strong>1 kart çekebilirsin</strong>.<br />
+          Seviye kuralı: İlk oynadığın canavar seviye 1, sonra 2, sonra 3, sonra 4 açılır.<br />
+          <strong>Sınıflar:</strong> Canavarların bir <strong>sınıfı</strong> vardır (ör: Ejder, Böcek, Makine...).<br />
+          Saldırı: Canavar seç → rakip canavarına veya rakibin kendisine saldır.<br />
+          Direkt saldırı kuralı: Rakip sana <strong>ancak tur başlarken sahanda hiç canavar yoksa</strong> ve şu anda da yoksa direkt saldırabilir.<br />
+          <strong>Ek kural:</strong> Her oyuncu <strong>ilk kendi turunda saldırı yapamaz</strong>. Saldırılar, oyuncunun ikinci turundan itibaren başlar.<br />
+          <strong>Barış kartı:</strong> Barış Sözleşmesi aktifken, 2 oyuncu turu boyunca hiçbir saldırı yapılamaz.<br />
+          Bazı canavarların özel efektleri vardır (tur başında hasar, sahaya çağrıldığında can verme, ölünce mezarlıktan büyü çekme, rakip büyü kilidi, aura buff, öldürdüğü canavar başına güç alma gibi).<br/>
+          <strong>Gizli kartlar:</strong> Canavar ve büyü kartlarını <strong>gizli (yüzü kapalı)</strong> olarak sahaya koyabilirsin. Gizli canavarlara rakip saldırabilir, saldırı anında kart açılır. Gizli büyüler sadece sahibi tarafından açılır, açıldığı anda efekt çalışır. Gizli canavarla saldırmak için önce kartı açman gerekir.
+        </p>
+        <div class="history-panel">
+          <div class="history-title">Oyun Tarihçesi</div>
+          <div class="history-list" id="history-list">
+            <div class="history-item history-meta">Hamleler burada listelenecek.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+            <!-- Sağ: oyun alanı -->
+            <div class="game-container">
+              <div class="row">
+                <div class="field-column">
+                  <div class="player-panel" id="player-1-panel"></div>
+                  <div class="player-panel" id="player-0-panel"></div>
+                </div>
+
+                <div class="controls-panel" id="controls-panel">
+                  <div class="conn-panel">
+                    <div class="conn-status" id="conn-status">Çevrimdışı</div>
+                    <div class="conn-row">
+                      <button class="conn-btn" id="host-btn">Oda Oluştur</button>
+                      <button class="conn-btn" id="join-btn">Odaya Katıl</button>
+                    </div>
+                    <div class="conn-room" id="conn-room"></div>
+                  </div>
+                  <h2>Kontroller</h2>
+          <div class="deck-panel" id="account-panel">
+            <div class="deck-meta" id="account-status">Giriş yapılmadı</div>
+            <input id="account-username" class="deck-input" placeholder="Kullanıcı adı" />
+            <input id="account-password" class="deck-input" type="password" placeholder="Şifre" />
+            <div class="deck-controls">
+              <button class="button" id="register-btn">Kayıt Ol</button>
+              <button class="button" id="login-btn">Giriş Yap</button>
+              <button class="button" id="logout-btn">Çıkış</button>
+            </div>
+          </div>
+          <div class="deck-panel">
+            <div class="deck-meta" id="active-deck-label">Aktif deste: Varsayılan (rastgele)</div>
+            <button class="button" id="deck-builder-btn">Deste Oluştur</button>
+          </div>
+                  <div id="turn-timer" class="turn-timer">Süre: --:--</div>
+                  <div id="start-info" class="info-line"></div>
+                  <div id="game-info" class="info-line"></div>
+                  <div id="text-status"></div>
+                  <div class="controls-buttons">
+                    <button class="button" id="start-btn">Oyunu Başlat</button>
+                    <button class="button" id="draw-btn">Kart Çek</button>
+                    <button class="button" id="endturn-btn">Turu Bitir</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bottom-hand"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mezarlık Modalı -->
+  <div id="graveyard-modal" class="modal hidden">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title" id="graveyard-modal-title">Mezarlık</div>
+        <button class="modal-close-btn" onclick="closeGraveyard()">×</button>
+      </div>
+      <ul class="modal-list" id="graveyard-modal-list"></ul>
+    </div>
+  </div>
+
+  <!-- Gizli kart modalı -->
+  <div id="hidden-modal" class="modal hidden">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title" id="hidden-modal-title">Gizli Kart</div>
+        <button class="modal-close-btn" onclick="closeHiddenModal()">×</button>
+      </div>
+      <div id="hidden-modal-body"></div>
+    </div>
+  </div>
+
+  <!-- Bildirim modalı -->
+  <div id="notice-modal" class="modal hidden">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title" id="notice-title">Uyarı</div>
+        <button class="modal-close-btn" onclick="closeNotice()">×</button>
+      </div>
+      <div id="notice-body"></div>
+      <div class="notice-actions">
+        <button class="button" onclick="closeNotice()">Tamam</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Yazı tura modalı -->
+  <div id="coinflip-modal" class="modal hidden">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title" id="coinflip-title">Yazı Tura</div>
+        <button class="modal-close-btn" onclick="closeCoinFlip()">×</button>
+      </div>
+      <div id="coinflip-body">Yazı mı, tura mı?</div>
+      <div class="modal-actions">
+        <button class="button" onclick="resolveCoinFlip('yazi')">Yazı</button>
+        <button class="button" onclick="resolveCoinFlip('tura')">Tura</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Deste oluşturma modalı -->
+  <div id="deck-modal" class="modal hidden">
+    <div class="modal-dialog" style="max-width: 720px;">
+      <div class="modal-header">
+        <div class="modal-title">Deste Oluştur</div>
+        <button class="modal-close-btn" onclick="closeDeckBuilder()">×</button>
+      </div>
+      <div class="deck-controls">
+        <select id="deck-select" class="deck-input"></select>
+        <input id="deck-name" class="deck-input" placeholder="Deste adı" />
+      </div>
+      <div class="deck-controls">
+        <button class="button" onclick="newDeck()">Yeni Deste</button>
+        <button class="button" onclick="saveDeck()">Kaydet</button>
+        <button class="button" onclick="setActiveDeck()">Seçili Yap</button>
+        <button class="button" onclick="deleteDeck()">Sil</button>
+      </div>
+      <div class="deck-builder">
+        <div>
+          <div class="deck-meta">Kart Kataloğu</div>
+          <div class="deck-tabs">
+            <button class="deck-tab" id="deck-tab-monster" onclick="setDeckTab('monster')">Canavar</button>
+            <button class="deck-tab" id="deck-tab-spell" onclick="setDeckTab('spell')">Büyü</button>
+            <button class="deck-tab" id="deck-tab-trap" onclick="setDeckTab('trap')">Tuzak</button>
+          </div>
+          <div class="deck-tabs" id="deck-level-filters">
+            <button class="deck-tab" id="deck-level-all" onclick="setDeckLevelFilter(0)">Tümü</button>
+            <button class="deck-tab" id="deck-level-1" onclick="setDeckLevelFilter(1)">1</button>
+            <button class="deck-tab" id="deck-level-2" onclick="setDeckLevelFilter(2)">2</button>
+            <button class="deck-tab" id="deck-level-3" onclick="setDeckLevelFilter(3)">3</button>
+            <button class="deck-tab" id="deck-level-4" onclick="setDeckLevelFilter(4)">4</button>
+          </div>
+          <div class="deck-catalog" id="deck-catalog"></div>
+        </div>
+        <div>
+          <div class="deck-meta">Seçilenler <span id="deck-count">0</span>/30</div>
+          <div class="deck-list" id="deck-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Oyun bitti modalı -->
+  <div id="gameover-modal" class="modal hidden">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title" id="gameover-title">Oyun Bitti</div>
+      </div>
+      <div id="gameover-body"></div>
+      <div class="gameover-actions">
+        <button class="button" id="rematch-btn">Yeniden Oyna</button>
+      </div>
+      <div class="gameover-status" id="rematch-status"></div>
+    </div>
+  </div>
+
+  <script>
+    function applyViewportScale() {
+      const root = document.querySelector(".app-root");
+      const scaleEl = document.getElementById("viewport-scale");
+      if (!root || !scaleEl) return;
+      const baseW = root.scrollWidth || root.offsetWidth || 1;
+      const baseH = root.scrollHeight || root.offsetHeight || 1;
+      const fitScale = Math.min(window.innerWidth / baseW, window.innerHeight / baseH);
+      const scale = Math.min(1, Math.max(0.75, fitScale));
+      scaleEl.style.transform = `scale(${scale})`;
+    }
+    // -------------------------
+    // Kart Veritabanı (canavarlar + büyüler)
+    // -------------------------
+    const cardDatabase = [
+      {
+        id: "ejder-yumurtasi",
+        name: "Ejder yumurtası",
+        type: "monster",
+        cardClass: "Ejder",
+        level: 1,
+        basePower: 800,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "kuriboh",
+        name: "Kurıboh",
+        type: "monster",
+        cardClass: "Karanlık",
+        level: 1,
+        basePower: 850,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "civik-hayalet",
+        name: "Cıvık hayalet",
+        type: "monster",
+        cardClass: "Karanlık",
+        level: 1,
+        basePower: 1100,
+        effect: {
+          onBattleDeathReturnToHand: true
+        },
+        spellEffect: null,
+        description: "Savaşta ölürse, sıra tekrar sana geldiğinde eline döner."
+      },
+      {
+        id: "bebek-ejder",
+        name: "Bebek ejder",
+        type: "monster",
+        cardClass: "Ejder",
+        level: 1,
+        basePower: 900,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "demir-larva",
+        name: "Demir larva",
+        type: "monster",
+        cardClass: "Makine",
+        level: 1,
+        basePower: 1300,
+        effect: {
+          onDeathDebuffKiller: 500
+        },
+        spellEffect: null,
+        description: "Bu kartı öldüren canavarın gücü 500 azalır."
+      },
+      {
+        id: "dikenli-ejder",
+        name: "Dikenli ejder",
+        type: "monster",
+        cardClass: "Ejder",
+        level: 1,
+        basePower: 950,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "meyve-sinegi",
+        name: "Meyve sineği",
+        type: "monster",
+        cardClass: "Böcek",
+        level: 1,
+        basePower: 950,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "okyanus-perisi",
+        name: "Okyanus perisi",
+        type: "monster",
+        cardClass: "Melek",
+        level: 2,
+        basePower: 1300,
+        effect: {
+          auraBuffAllies: 400,
+          excludeSelfFromAura: true
+        },
+        spellEffect: null,
+        description: "Sahada bulunduğu sürece kendisi hariç senin sahandaki tüm canavarlara +400 güç verir."
+      },
+      {
+        id: "penguen-asker",
+        name: "Penguen asker",
+        type: "monster",
+        cardClass: "Hayvan",
+        level: 1,
+        basePower: 1000,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "biyikli-sihirbaz",
+        name: "Bıyıklı sihirbaz",
+        type: "monster",
+        cardClass: "Büyücü",
+        level: 1,
+        basePower: 1050,
+        effect: { onOpponentTurnStartCoinFlip: true },
+        spellEffect: null,
+        description: "Rakibe sıra geldiğinde yazı-tura tercihi yaptırır. Doğru bilirse o tur saldırabilir, bilemezse saldıramaz."
+      },
+      {
+        id: "dere-kurbagasi",
+        name: "Dere kurbağası",
+        type: "monster",
+        cardClass: "Hayvan",
+        level: 1,
+        basePower: 1050,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "sican-kurt",
+        name: "Sıçan kurt",
+        type: "monster",
+        cardClass: "Hayvan",
+        level: 1,
+        basePower: 1100,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "siyah-gulle",
+        name: "Siyah gülle",
+        type: "monster",
+        cardClass: "Bitki",
+        level: 1,
+        basePower: 1100,
+        effect: { onFaceDownAttackedDestroyAttacker: true },
+        spellEffect: null,
+        description: "Gizli iken saldıran canavar mezara gider."
+      },
+      {
+        id: "seker-robotu",
+        name: "Şeker robotu",
+        type: "monster",
+        cardClass: "Makine",
+        level: 1,
+        basePower: 1150,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "ufak-ejder",
+        name: "Ufak ejder",
+        type: "monster",
+        cardClass: "Ejder",
+        level: 1,
+        basePower: 1150,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "tirtikci-tirt",
+        name: "Tırtıkçı tırt",
+        type: "monster",
+        cardClass: "Böcek",
+        level: 1,
+        basePower: 1200,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "ciyan",
+        name: "Çıyan",
+        type: "monster",
+        cardClass: "Böcek",
+        level: 2,
+        basePower: 1700,
+        effect: {
+          onDeathReturnSpellFromGY: true
+        },
+        spellEffect: null,
+        description: "Mezara gittiğinde mezarından 1 büyü kartı seçip eline alırsın."
+      },
+      {
+        id: "acimasiz-gardna",
+        name: "Acımasız Gardna",
+        type: "monster",
+        cardClass: "Savaşçı",
+        level: 2,
+        basePower: 2300,
+        effect: {
+          cannotAttack: true
+        },
+        spellEffect: null,
+        description: "Bu canavar saldırıda kullanılamaz."
+      },
+      {
+        id: "asabi-baykus",
+        name: "Asabi baykuş",
+        type: "monster",
+        cardClass: "Hayvan",
+        level: 1,
+        basePower: 1200,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "kum-kuresi",
+        name: "Kum küresi",
+        type: "monster",
+        cardClass: "Büyücü",
+        level: 1,
+        basePower: 1250,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "limon-kulasi",
+        name: "Limon kulaşı",
+        type: "monster",
+        cardClass: "Bitki",
+        level: 1,
+        basePower: 1250,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "ucak-tavsan",
+        name: "Uçak tavşan",
+        type: "monster",
+        cardClass: "Hayvan",
+        level: 1,
+        basePower: 1300,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "sosis-balik",
+        name: "Sosis balık",
+        type: "monster",
+        cardClass: "Hayvan",
+        level: 1,
+        basePower: 1300,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "karizma-kedi",
+        name: "Karizma kedi",
+        type: "monster",
+        cardClass: "Hayvan",
+        level: 1,
+        basePower: 1350,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "buyuk-ayi",
+        name: "Büyük ayı",
+        type: "monster",
+        cardClass: "Hayvan",
+        level: 1,
+        basePower: 1350,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "yaldizli-eylemci",
+        name: "Yaldızlı eylemci",
+        type: "monster",
+        cardClass: "İnsan",
+        level: 1,
+        basePower: 1400,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "gokyuzu-penguen",
+        name: "Gökyüzü penguen",
+        type: "monster",
+        cardClass: "Hayvan",
+        level: 2,
+        basePower: 1500,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "kirpi-kalkan",
+        name: "Kirpi kalkan",
+        type: "monster",
+        cardClass: "Hayvan",
+        level: 2,
+        basePower: 1550,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "gomlekli-troll",
+        name: "Gömlekli trol",
+        type: "monster",
+        cardClass: "İnsan",
+        level: 2,
+        basePower: 1550,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "hayalet-balikci",
+        name: "Hayalet balıkçı",
+        type: "monster",
+        cardClass: "Hayvan",
+        level: 2,
+        basePower: 1600,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "minik-minotor",
+        name: "Minik minotor",
+        type: "monster",
+        cardClass: "Hayvan",
+        level: 2,
+        basePower: 1650,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "camur-dev",
+        name: "Çamur dev",
+        type: "monster",
+        cardClass: "Toprak",
+        level: 2,
+        basePower: 1650,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "mantar-koc",
+        name: "Mantar koç",
+        type: "monster",
+        cardClass: "Bitki",
+        level: 2,
+        basePower: 1700,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "kopuk-balik",
+        name: "Köpük balık",
+        type: "monster",
+        cardClass: "Hayvan",
+        level: 2,
+        basePower: 1750,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "oyuncak-sovalye",
+        name: "Oyuncak şövalye",
+        type: "monster",
+        cardClass: "İnsan",
+        level: 2,
+        basePower: 1750,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "iki-kafali-fil",
+        name: "İki kafalı fil",
+        type: "monster",
+        cardClass: "Hayvan",
+        level: 2,
+        basePower: 1800,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "lav-topu",
+        name: "Lav topu",
+        type: "monster",
+        cardClass: "Ateş",
+        level: 2,
+        basePower: 1850,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "robot-kartal",
+        name: "Robot kartal",
+        type: "monster",
+        cardClass: "Makine",
+        level: 2,
+        basePower: 1850,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "rengarenk-kus",
+        name: "Rengarenk kuş",
+        type: "monster",
+        cardClass: "Hayvan",
+        level: 3,
+        basePower: 2000,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "tas-ejderi",
+        name: "Taş ejderi",
+        type: "monster",
+        cardClass: "Ejder",
+        level: 3,
+        basePower: 2050,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "torbali-tepe",
+        name: "Torbalı tepe",
+        type: "monster",
+        cardClass: "Toprak",
+        level: 3,
+        basePower: 2050,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "mor-ayicik",
+        name: "Mor ayıcık",
+        type: "monster",
+        cardClass: "Hayvan",
+        level: 3,
+        basePower: 2100,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "yildirim-maymun",
+        name: "Yıldırım maymun",
+        type: "monster",
+        cardClass: "Hayvan",
+        level: 3,
+        basePower: 2150,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "sisli-ejder",
+        name: "Sisli ejder",
+        type: "monster",
+        cardClass: "Ejder",
+        level: 3,
+        basePower: 2150,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "balkabak-ruh",
+        name: "Balkabak ruh",
+        type: "monster",
+        cardClass: "Karanlık",
+        level: 3,
+        basePower: 2200,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "kolpa-sovalye",
+        name: "Kolpa şövalye",
+        type: "monster",
+        cardClass: "İnsan",
+        level: 3,
+        basePower: 2250,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "meftun",
+        name: "Meftun",
+        type: "monster",
+        cardClass: "İnsan",
+        level: 2,
+        basePower: 1600,
+        effect: {
+          onAnyMonsterSentToGyGainPower: 100
+        },
+        spellEffect: null,
+        description: "Sahadan mezara giden her canavar için +100 güç kazanır."
+      },
+      {
+        id: "civi-balik",
+        name: "Çivi balık",
+        type: "monster",
+        cardClass: "Hayvan",
+        level: 3,
+        basePower: 2300,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "somurtkan-troll",
+        name: "Somurtkan trol",
+        type: "monster",
+        cardClass: "İnsan",
+        level: 4,
+        basePower: 2500,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "barbeku-ejder",
+        name: "Barbekü ejder",
+        type: "monster",
+        cardClass: "Ejder",
+        level: 4,
+        basePower: 2500,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "goblin-muteahhit",
+        name: "Goblin müteahhit",
+        type: "monster",
+        cardClass: "İnsan",
+        level: 4,
+        basePower: 2550,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "gozuklek-canavar",
+        name: "Gözüklek canavar",
+        type: "monster",
+        cardClass: "Karanlık",
+        level: 4,
+        basePower: 2550,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "kizgin-fil",
+        name: "Kızgın fil",
+        type: "monster",
+        cardClass: "Hayvan",
+        level: 4,
+        basePower: 2550,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "uslu-ejder",
+        name: "Uslu ejder",
+        type: "monster",
+        cardClass: "Ejder",
+        level: 4,
+        basePower: 2600,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "fosforlu-ayicik",
+        name: "Fosforlu ayıcık",
+        type: "monster",
+        cardClass: "Hayvan",
+        level: 4,
+        basePower: 2600,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "mavi-kurbaga",
+        name: "Mavi kurbağa",
+        type: "monster",
+        cardClass: "Hayvan",
+        level: 4,
+        basePower: 2600,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "kirik-kaskli",
+        name: "Kırık kasklı",
+        type: "monster",
+        cardClass: "İnsan",
+        level: 4,
+        basePower: 2600,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "meftun-2",
+        name: "Meftun",
+        type: "monster",
+        cardClass: "İnsan",
+        level: 2,
+        basePower: 1600,
+        effect: {
+          onAnyMonsterSentToGyGainPower: 100
+        },
+        spellEffect: null,
+        description: "Sahadan mezara giden her canavar için +100 güç kazanır."
+      },
+      {
+        id: "gece-kurt",
+        name: "Gece kurt",
+        type: "monster",
+        cardClass: "Hayvan",
+        level: 4,
+        basePower: 2650,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "karanlik-lider",
+        name: "Karanlık lider",
+        type: "monster",
+        cardClass: "Karanlık",
+        level: 4,
+        basePower: 2650,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+      {
+        id: "beyaz-ejder",
+        name: "Beyaz ejder",
+        type: "monster",
+        cardClass: "Ejder",
+        level: 4,
+        basePower: 2700,
+        effect: null,
+        spellEffect: null,
+        description: ""
+      },
+
+      /* ÖZEL EFEKT CANAVARLAR */
+
+      {
+        id: "ates-elcisi",
+        name: "Ateş elçisi",
+        type: "monster",
+        cardClass: "Ateş",
+        level: 3,
+        basePower: 2350,
+        effect: {
+          turnStartDamageOpponent: 200,
+          onSummonHealOwner: 0
+        },
+        spellEffect: null,
+        description: "Sahadayken her kendi turunun başında rakibe 200 hasar verir. Sahaya çağrıldığında bir kezlik sana 400 can kazandırır."
+      },
+      {
+        id: "mezar-buyucusu",
+        name: "Mezar büyücüsü",
+        type: "monster",
+        cardClass: "Büyücü",
+        level: 2,
+        basePower: 1900,
+        effect: {
+          onDeathReturnSpellFromGY: true
+        },
+        spellEffect: null,
+        description: "Öldüğü zaman mezarlığındaki bir büyü kartını eline geri almanı sağlar."
+      },
+      {
+        id: "jinzho",
+        name: "Jinzho",
+        type: "monster",
+        cardClass: "Makine",
+        level: 3,
+        basePower: 2000,
+        effect: {
+          preventOpponentTraps: true
+        },
+        spellEffect: null,
+        description: "Sahadayken rakip tuzak kartları aktif hale gelemez."
+      },
+      {
+        id: "bingoz",
+        name: "Bingöz",
+        type: "monster",
+        cardClass: "Karanlık",
+        level: 2,
+        basePower: 1600,
+        effect: {
+          preventOpponentSetFaceDownMonsters: true
+        },
+        spellEffect: null,
+        description: "Sahadayken rakip gizli canavar yerleştiremez."
+      },
+      {
+        id: "kutsal-melek",
+        name: "Kutsal melek",
+        type: "monster",
+        cardClass: "Melek",
+        level: 2,
+        basePower: 1600,
+        effect: {
+          onBattleDeathHealOwner: 800
+        },
+        spellEffect: null,
+        description: "Saldırı sonucu öldüğünde senden can azalmaz ve +800 can kazanırsın."
+      },
+      {
+        id: "buyu-yutucu-golem",
+        name: "Büyü yutucu golem",
+        type: "monster",
+        cardClass: "Makine",
+        level: 3,
+        basePower: 2350,
+        effect: {
+          preventOpponentSpells: true
+        },
+        spellEffect: null,
+        description: "Sahadayken rakibin büyü kartı oynamasını engeller."
+      },
+      {
+        id: "savas-moralisti",
+        name: "Savaş moralisti",
+        type: "monster",
+        cardClass: "İnsan",
+        level: 3,
+        basePower: 2400,
+        effect: {
+          auraBuffAllies: 200,
+          excludeSelfFromAura: true
+        },
+        spellEffect: null,
+        description: "Sahadayken aynı sahadaki diğer tüm dost canavarlara +200 güç verir."
+      },
+      {
+        id: "guc-avcisi",
+        name: "Güç avcısı",
+        type: "monster",
+        cardClass: "Karanlık",
+        level: 4,
+        basePower: 2700,
+        effect: {
+          onKillGainPower: 200
+        },
+        spellEffect: null,
+        description: "Bu kart her canavar yok ettiğinde kalıcı olarak +200 güç kazanır."
+      },
+
+      // -------------------
+      // BÜYÜ KARTLARI
+      // -------------------
+      {
+        id: "spell-draw2",
+        name: "İkili Çek",
+        type: "spell",
+        cardClass: "Büyü",
+        level: null,
+        basePower: null,
+        effect: null,
+        spellEffect: { kind: "draw2" },
+        description: "Bu kartı oynadığında 2 kart çektirir."
+      },
+      {
+        id: "spell-destroy-opp-monster",
+        name: "Tek Hedef Yok Et",
+        type: "spell",
+        cardClass: "Büyü",
+        level: null,
+        basePower: null,
+        effect: null,
+        spellEffect: { kind: "destroyOppMonster" },
+        description: "Rakip sahasındaki bir canavarı yok eder (hedef seç)."
+      },
+      {
+        id: "spell-discard-opp-2",
+        name: "El Parçalayıcı",
+        type: "spell",
+        cardClass: "Büyü",
+        level: null,
+        basePower: null,
+        effect: null,
+        spellEffect: { kind: "discardOpp2" },
+        description: "Rakibin elinden rastgele 2 kartı mezarlığa gönderir."
+      },
+      {
+        id: "spell-heal-500",
+        name: "Can Takviyesi",
+        type: "spell",
+        cardClass: "Büyü",
+        level: null,
+        basePower: null,
+        effect: null,
+        spellEffect: { kind: "heal500" },
+        description: "Kendine 500 can puanı eklersin."
+      },
+      {
+        id: "spell-board-wipe",
+        name: "Büyük Patlama",
+        type: "spell",
+        cardClass: "Büyü",
+        level: null,
+        basePower: null,
+        effect: null,
+        spellEffect: { kind: "boardWipe" },
+        description: "Senin ve rakibin sahasındaki tüm canavarları yok eder."
+      },
+      {
+        id: "spell-steal-1",
+        name: "Zihin Kontrolü",
+        type: "spell",
+        cardClass: "Büyü",
+        level: null,
+        basePower: null,
+        effect: null,
+        spellEffect: { kind: "steal1" },
+        description: "Rakibin elinden rastgele 1 kart çalar ve eline ekler."
+      },
+      {
+        id: "spell-peace-2-turns",
+        name: "Barış Sözleşmesi",
+        type: "spell",
+        cardClass: "Büyü",
+        level: null,
+        basePower: null,
+        effect: null,
+        spellEffect: { kind: "peace2Turns" },
+        description: "Sonraki 2 oyuncu turu boyunca kimse saldırı yapamaz."
+      },
+      {
+        id: "spell-trap-patlatan",
+        name: "Tuzak Patlatan",
+        type: "spell",
+        cardClass: "Büyü",
+        level: null,
+        basePower: null,
+        effect: null,
+        spellEffect: { kind: "destroyOppHiddenSpells" },
+        description: "Rakip sahadaki gizli büyü/tuzak kartlarının tamamını mezarlığa gönderir."
+      },
+      {
+        id: "spell-guc-iksiri",
+        name: "Güç İksiri",
+        type: "spell",
+        cardClass: "Büyü",
+        level: null,
+        basePower: null,
+        effect: null,
+        spellEffect: { kind: "buffOwnMonster400" },
+        description: "Kendi sahandan seçtiğin bir canavara kalıcı +400 güç verir."
+      },
+      {
+        id: "spell-mezardan-donus",
+        name: "Mezardan Dönüş",
+        type: "spell",
+        cardClass: "Büyü",
+        level: null,
+        basePower: null,
+        effect: null,
+        spellEffect: { kind: "reviveFromGraveyard" },
+        description: "800 can puanı ödeyip mezarından bir canavarı sahana yerleştirirsin."
+      },
+      {
+        id: "spell-surekli-guc",
+        name: "Sürekli Güç",
+        type: "spell",
+        cardClass: "Sürekli Büyü",
+        level: null,
+        basePower: null,
+        effect: null,
+        spellEffect: { kind: "continuousBuffAllies200" },
+        description: "Sahada kaldığı sürece kendi sahandaki tüm canavarlara +200 güç verir."
+      },
+      {
+        id: "spell-sec-begen-al",
+        name: "Seç, Beğen, Al!",
+        type: "spell",
+        cardClass: "Büyü",
+        level: null,
+        basePower: null,
+        effect: null,
+        spellEffect: { kind: "selectTop5Take1RestGY" },
+        description: "Destenin üstündeki 5 karta bak, birini seç ve eline al. Diğerleri mezara gider."
+      },
+      {
+        id: "spell-power-down-400",
+        name: "Güç Düşürme",
+        type: "spell",
+        cardClass: "Büyü",
+        level: null,
+        basePower: null,
+        effect: null,
+        spellEffect: { kind: "debuffOppMonster400" },
+        description: "Rakip sahadaki seçtiğin bir canavarın gücünü 400 azaltır."
+      },
+      {
+        id: "spell-deck-lock",
+        name: "Deste Kilidi",
+        type: "spell",
+        cardClass: "Büyü",
+        level: null,
+        basePower: null,
+        effect: null,
+        spellEffect: { kind: "lockOppDraw1" },
+        description: "Rakip bir sonraki tur kart çekemez."
+      },
+      {
+        id: "spell-monster-swap",
+        name: "Canavar Takası",
+        type: "spell",
+        cardClass: "Büyü",
+        level: null,
+        basePower: null,
+        effect: null,
+        spellEffect: { kind: "swapMonsters" },
+        description: "Kendi sahandan ve rakip sahadan birer canavar seçilir, yer değiştirir."
+      },
+      {
+        id: "spell-toplu-gocuk",
+        name: "Toplu Göçük",
+        type: "spell",
+        cardClass: "Büyü",
+        level: null,
+        basePower: null,
+        effect: null,
+        spellEffect: { kind: "wipeOppIf3" },
+        description: "Rakibin sahasında 3 veya daha fazla canavar varsa tüm canavarlar mezara gider."
+      },
+      {
+        id: "spell-dirilt",
+        name: "Dirilt",
+        type: "spell",
+        cardClass: "Büyü",
+        level: null,
+        basePower: null,
+        effect: null,
+        spellEffect: { kind: "reviveFromGraveyardFree" },
+        description: "Mezarlığından bir canavar kartını sahana yerleştirir."
+      },
+      {
+        id: "spell-attack-lock",
+        name: "Saldırı Kilidi",
+        type: "spell",
+        cardClass: "Büyü",
+        level: null,
+        basePower: null,
+        effect: null,
+        spellEffect: { kind: "lockOppMonsterAttack2" },
+        description: "Rakip sahadaki seçtiğin bir canavar 2 tur saldıramaz."
+      },
+      {
+        id: "spell-geri-gel",
+        name: "Geri Gel!",
+        type: "spell",
+        cardClass: "Büyü",
+        level: null,
+        basePower: null,
+        effect: null,
+        spellEffect: { kind: "returnOwnMonsterToHand" },
+        description: "Sahandaki seçtiğin bir canavarı eline geri alırsın."
+      },
+      {
+        id: "spell-takas-zamani",
+        name: "Takas Zamanı",
+        type: "spell",
+        cardClass: "Büyü",
+        level: null,
+        basePower: null,
+        effect: null,
+        spellEffect: { kind: "swapFromOppHand" },
+        description: "İki oyuncu da birbirinin elinden bir kart seçer ve eline ekler."
+      },
+      {
+        id: "spell-toplu-yenileme",
+        name: "Toplu Yenileme",
+        type: "spell",
+        cardClass: "Büyü",
+        level: null,
+        basePower: null,
+        effect: null,
+        spellEffect: { kind: "refreshBothHands" },
+        description: "İki oyuncu da elindeki tüm kartları mezara atar ve attığı kadar kart çeker."
+      },
+      // Tuzak kartları
+      {
+        id: "trap-negate-direct",
+        name: "Doğrudan Kalkan",
+        type: "spell",
+        cardClass: "Tuzak Kartı",
+        level: null,
+        basePower: null,
+        effect: null,
+        spellEffect: { kind: "trapNegateDirect" },
+        description: "Gizliyken rakip sana doğrudan saldırırsa otomatik açılır, saldırıyı iptal eder ve rakip o tur tekrar saldırı yapamaz."
+      },
+      {
+        id: "trap-destroy-attacker",
+        name: "Karşı Vuruş",
+        type: "spell",
+        cardClass: "Tuzak Kartı",
+        level: null,
+        basePower: null,
+        effect: null,
+        spellEffect: { kind: "trapDestroyAttacker" },
+        description: "Gizliyken rakip bir canavarına saldırırsa otomatik açılır; saldırı iptal olur ve saldıran canavar mezara gider."
+      },
+      {
+        id: "trap-negate-spell",
+        name: "Büyü İptali",
+        type: "spell",
+        cardClass: "Tuzak Kartı",
+        level: null,
+        basePower: null,
+        effect: null,
+        spellEffect: { kind: "trapNegateSpell" },
+        description: "Rakibin kullandığı büyü veya tuzak kartını iptal eder."
+      },
+      {
+        id: "trap-steal-attacker",
+        name: "Hak Devri",
+        type: "spell",
+        cardClass: "Tuzak Kartı",
+        level: null,
+        basePower: null,
+        effect: null,
+        spellEffect: { kind: "trapStealAttacker" },
+        description: "Gizliyken rakip canavarı saldırırsa saldırıyı iptal eder ve saldıran canavarı senin sahana geçirir."
+      }
+    ];
+
+    const AUTH_TOKEN_KEY = "sangolgame.authToken";
+    const AUTH_USER_KEY = "sangolgame.authUser";
+    let authToken = null;
+    let currentUser = null;
+    let deckCache = [];
+    let activeDeckId = null;
+    let deckBuilderState = { deckId: null, name: "", cards: [] };
+    let deckCatalogTab = "monster";
+    let deckLevelFilter = 0;
+
+    function setCurrentUser(username, token) {
+      currentUser = username || null;
+      authToken = token || null;
+      if (authToken) {
+        localStorage.setItem(AUTH_TOKEN_KEY, authToken);
+      } else {
+        localStorage.removeItem(AUTH_TOKEN_KEY);
+      }
+      if (currentUser) {
+        localStorage.setItem(AUTH_USER_KEY, currentUser);
+      } else {
+        localStorage.removeItem(AUTH_USER_KEY);
+      }
+      if (!currentUser) {
+        deckCache = [];
+        activeDeckId = null;
+      }
+      updateAccountStatus();
+      updateActiveDeckLabel();
+    }
+
+    async function loadCurrentUser() {
+      const storedToken = localStorage.getItem(AUTH_TOKEN_KEY);
+      if (!storedToken) {
+        setCurrentUser(null, null);
+        return;
+      }
+      authToken = storedToken;
+      try {
+        const data = await apiRequest("/api/me", { method: "GET" });
+        if (!data || !data.username) {
+          setCurrentUser(null, null);
+          return;
+        }
+        currentUser = data.username;
+        activeDeckId = data.activeDeckId || null;
+        localStorage.setItem(AUTH_USER_KEY, currentUser);
+        updateAccountStatus();
+        await fetchDecks();
+      } catch {
+        setCurrentUser(null, null);
+      }
+    }
+
+    function updateAccountStatus() {
+      const statusEl = document.getElementById("account-status");
+      if (!statusEl) return;
+      statusEl.textContent = currentUser ? `Aktif hesap: ${currentUser}` : "Giriş yapılmadı";
+    }
+
+    async function apiRequest(url, options = {}) {
+      const opts = { ...options };
+      const headers = { "Content-Type": "application/json", ...(opts.headers || {}) };
+      if (authToken) {
+        headers.Authorization = `Bearer ${authToken}`;
+      }
+      opts.headers = headers;
+      const res = await fetch(url, opts);
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 401) {
+        setCurrentUser(null, null);
+      }
+      if (!res.ok) {
+        throw new Error(data.error || "request_failed");
+      }
+      return data;
+    }
+
+    async function fetchDecks() {
+      if (!currentUser) {
+        deckCache = [];
+        activeDeckId = null;
+        updateActiveDeckLabel();
+        return [];
+      }
+      const data = await apiRequest("/api/decks", { method: "GET" });
+      deckCache = data.decks || [];
+      activeDeckId = data.activeDeckId || null;
+      updateActiveDeckLabel();
+      return deckCache;
+    }
+
+    function loadDecks() {
+      return deckCache;
+    }
+
+    function getActiveDeck() {
+      const decks = loadDecks();
+      return decks.find((d) => d.id === activeDeckId) || null;
+    }
+
+    function updateActiveDeckLabel() {
+      const label = document.getElementById("active-deck-label");
+      if (!label) return;
+      const deck = getActiveDeck();
+      if (deck) {
+        label.textContent = `Aktif deste: ${deck.name} (${deck.cards.length}/30)`;
+      } else {
+        label.textContent = "Aktif deste: Varsayılan (rastgele)";
+      }
+    }
+
+    function requireAccount() {
+      if (currentUser) return true;
+      showNotice("Önce giriş yapmalısın.");
+      return false;
+    }
+
+    async function registerAccount() {
+      const nameInput = document.getElementById("account-username");
+      const passInput = document.getElementById("account-password");
+      const username = nameInput ? nameInput.value.trim() : "";
+      const password = passInput ? passInput.value : "";
+      if (!username || !password) {
+        showNotice("Kullanıcı adı ve şifre zorunlu.");
+        return;
+      }
+      try {
+        const data = await apiRequest("/api/register", {
+          method: "POST",
+          body: JSON.stringify({ username, password })
+        });
+        setCurrentUser(data.username, data.token);
+        await fetchDecks();
+      } catch (err) {
+        showNotice("Kayıt başarısız. Kullanıcı adı alınmış olabilir.");
+        return;
+      }
+      if (passInput) passInput.value = "";
+      showNotice("Kayıt tamamlandı. Giriş yapıldı.");
+    }
+
+    async function loginAccount() {
+      const nameInput = document.getElementById("account-username");
+      const passInput = document.getElementById("account-password");
+      const username = nameInput ? nameInput.value.trim() : "";
+      const password = passInput ? passInput.value : "";
+      if (!username || !password) {
+        showNotice("Kullanıcı adı ve şifre zorunlu.");
+        return;
+      }
+      try {
+        const data = await apiRequest("/api/login", {
+          method: "POST",
+          body: JSON.stringify({ username, password })
+        });
+        setCurrentUser(data.username, data.token);
+        await fetchDecks();
+      } catch (err) {
+        showNotice("Hatalı kullanıcı adı veya şifre.");
+        return;
+      }
+      if (passInput) passInput.value = "";
+      showNotice("Giriş başarılı.");
+    }
+
+    async function logoutAccount() {
+      if (authToken) {
+        try {
+          await apiRequest("/api/logout", { method: "POST" });
+        } catch {
+          // ignore
+        }
+      }
+      setCurrentUser(null, null);
+      showNotice("Çıkış yapıldı.");
+    }
+
+    function buildDeckFromIds(ids) {
+      const map = new Map(cardDatabase.map((c) => [c.id, c]));
+      const deck = [];
+      ids.forEach((id, i) => {
+        const base = map.get(id);
+        if (!base) return;
+        deck.push({
+          ...base,
+          instanceId: base.id + "-" + i + "-" + Math.random().toString(16).slice(2),
+          isFaceDown: false
+        });
+      });
+      for (let i = deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [deck[i], deck[j]] = [deck[j], deck[i]];
+      }
+      return deck;
+    }
+
+    async function openDeckBuilder() {
+      if (!requireAccount()) return;
+      await fetchDecks();
+      const decks = loadDecks();
+      const active = getActiveDeck();
+      if (active) {
+        deckBuilderState = { deckId: active.id, name: active.name, cards: [...active.cards] };
+      } else if (decks.length > 0) {
+        const first = decks[0];
+        deckBuilderState = { deckId: first.id, name: first.name, cards: [...first.cards] };
+      } else {
+        deckBuilderState = { deckId: null, name: "Yeni Deste", cards: [] };
+      }
+      renderDeckBuilder();
+      const modal = document.getElementById("deck-modal");
+      if (modal) modal.classList.remove("hidden");
+    }
+
+    function closeDeckBuilder() {
+      const modal = document.getElementById("deck-modal");
+      if (modal) modal.classList.add("hidden");
+    }
+
+    function renderDeckBuilder() {
+      const decks = loadDecks();
+      const select = document.getElementById("deck-select");
+      const nameInput = document.getElementById("deck-name");
+      const listEl = document.getElementById("deck-list");
+      const catalogEl = document.getElementById("deck-catalog");
+      const countEl = document.getElementById("deck-count");
+      if (!select || !nameInput || !listEl || !catalogEl || !countEl) return;
+
+      const tabMonster = document.getElementById("deck-tab-monster");
+      const tabSpell = document.getElementById("deck-tab-spell");
+      const tabTrap = document.getElementById("deck-tab-trap");
+      if (tabMonster && tabSpell && tabTrap) {
+        tabMonster.classList.toggle("active", deckCatalogTab === "monster");
+        tabSpell.classList.toggle("active", deckCatalogTab === "spell");
+        tabTrap.classList.toggle("active", deckCatalogTab === "trap");
+      }
+      const levelFilters = document.getElementById("deck-level-filters");
+      const levelAll = document.getElementById("deck-level-all");
+      const level1 = document.getElementById("deck-level-1");
+      const level2 = document.getElementById("deck-level-2");
+      const level3 = document.getElementById("deck-level-3");
+      const level4 = document.getElementById("deck-level-4");
+      if (levelFilters) {
+        levelFilters.style.display = deckCatalogTab === "monster" ? "flex" : "none";
+      }
+      if (levelAll && level1 && level2 && level3 && level4) {
+        levelAll.classList.toggle("active", deckLevelFilter === 0);
+        level1.classList.toggle("active", deckLevelFilter === 1);
+        level2.classList.toggle("active", deckLevelFilter === 2);
+        level3.classList.toggle("active", deckLevelFilter === 3);
+        level4.classList.toggle("active", deckLevelFilter === 4);
+      }
+
+      select.innerHTML = "";
+      if (decks.length === 0) {
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "Henüz deste yok";
+        select.appendChild(opt);
+      } else {
+        decks.forEach((d) => {
+          const opt = document.createElement("option");
+          opt.value = d.id;
+          opt.textContent = d.name;
+          select.appendChild(opt);
+        });
+      }
+
+      if (deckBuilderState.deckId) {
+        select.value = deckBuilderState.deckId;
+      } else {
+        select.value = "";
+      }
+      nameInput.value = deckBuilderState.name || "";
+      countEl.textContent = deckBuilderState.cards.length.toString();
+
+      listEl.innerHTML = deckBuilderState.cards
+        .map((id, idx) => {
+          const card = cardDatabase.find((c) => c.id === id);
+          const label = card
+            ? `${card.name} ${card.type === "monster" ? `(Seviye ${card.level} | ${card.basePower})` : `(${card.cardClass || "Büyü"})`}`
+            : "Bilinmeyen kart";
+          return `<div class="deck-card-row"><span>${label}</span><button class="small-button" onclick="removeCardFromDeck(${idx})">Kaldır</button></div>`;
+        })
+        .join("");
+
+      const disabledAdd = deckBuilderState.cards.length >= 30;
+      const catalog = cardDatabase
+        .filter((card) => {
+          if (deckCatalogTab === "trap") {
+            return card.type === "spell" && card.cardClass === "Tuzak Kartı";
+          }
+          if (deckCatalogTab === "spell") {
+            return card.type === "spell" && card.cardClass !== "Tuzak Kartı";
+          }
+          if (card.type !== "monster") return false;
+          if (deckLevelFilter === 0) return true;
+          return card.level === deckLevelFilter;
+        })
+        .slice();
+
+      if (deckCatalogTab === "monster") {
+        catalog.sort((a, b) => (a.level || 0) - (b.level || 0) || a.name.localeCompare(b.name));
+      } else {
+        catalog.sort((a, b) => a.name.localeCompare(b.name));
+      }
+
+      catalogEl.innerHTML = catalog
+        .map((card) => {
+          const alreadyInDeck = deckBuilderState.cards.includes(card.id);
+          const cardClass = `card ${card.type}`;
+          const levelText = card.type === "monster" ? `${"⭐".repeat(card.level)}` : "BÜYÜ";
+          const classText = card.type === "monster" ? `Sınıf: ${card.cardClass || "Yok"}` : `${card.cardClass || "Büyü"}`;
+          const powerText = card.type === "monster" ? `${card.basePower}` : "";
+          const effectText = card.description ? `<div class="card-effect">${card.description}</div>` : "";
+          return `
+            <div class="slot hand-card">
+              <div class="${cardClass}">
+                <div class="card-name${card.effect ? " effect-name" : ""}">${card.name}</div>
+                <div class="card-level">${levelText}</div>
+                <div class="card-class">${classText}</div>
+                ${powerText ? `<div class="card-power">${powerText}</div>` : ""}
+                ${effectText}
+                <div class="card-footer">
+                  <button class="small-button" onclick="addCardToDeck('${card.id}')" ${disabledAdd || alreadyInDeck ? "disabled" : ""}>Ekle</button>
+                  <button class="small-button icon-button" onclick="viewCatalogCard('${card.id}')" aria-label="Detay" title="Detay"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="16.5" y1="16.5" x2="21" y2="21"></line></svg></button>
+                </div>
+              </div>
+            </div>
+          `;
+        })
+        .join("");
+    }
+
+    function viewCatalogCard(cardId) {
+      const card = cardDatabase.find((c) => c.id === cardId);
+      if (!card) return;
+      showCardModal(card, "Kart Detayı");
+    }
+
+    function setDeckTab(tab) {
+      deckCatalogTab = tab;
+      renderDeckBuilder();
+    }
+
+    function setDeckLevelFilter(level) {
+      deckLevelFilter = level;
+      renderDeckBuilder();
+    }
+
+    function newDeck() {
+      deckBuilderState = { deckId: null, name: "Yeni Deste", cards: [] };
+      renderDeckBuilder();
+    }
+
+    async function saveDeck() {
+      if (!requireAccount()) return;
+      const nameInput = document.getElementById("deck-name");
+      const name = nameInput ? nameInput.value.trim() : "";
+      if (!name) {
+        showNotice("Deste adı boş olamaz.");
+        return;
+      }
+      if (deckBuilderState.cards.length !== 30) {
+        showNotice("Deste tam 30 kart olmalı.");
+        return;
+      }
+      try {
+        if (!deckBuilderState.deckId) {
+          const data = await apiRequest("/api/decks", {
+            method: "POST",
+            body: JSON.stringify({ name, cards: deckBuilderState.cards })
+          });
+          deckBuilderState.deckId = data.id;
+        } else {
+          await apiRequest(`/api/decks/${deckBuilderState.deckId}`, {
+            method: "PUT",
+            body: JSON.stringify({ name, cards: deckBuilderState.cards })
+          });
+        }
+        deckBuilderState.name = name;
+        await fetchDecks();
+        renderDeckBuilder();
+        showNotice("Deste kaydedildi.");
+      } catch {
+        showNotice("Deste kaydedilemedi.");
+      }
+    }
+
+    async function setActiveDeck() {
+      if (!requireAccount()) return;
+      if (!deckBuilderState.deckId) {
+        showNotice("Önce desteyi kaydetmelisin.");
+        return;
+      }
+      if (deckBuilderState.cards.length !== 30) {
+        showNotice("Aktif yapmak için deste 30 kart olmalı.");
+        return;
+      }
+      try {
+        await apiRequest("/api/decks/active", {
+          method: "POST",
+          body: JSON.stringify({ deckId: deckBuilderState.deckId })
+        });
+        activeDeckId = deckBuilderState.deckId;
+        updateActiveDeckLabel();
+        showNotice("Aktif deste güncellendi.");
+      } catch {
+        showNotice("Aktif deste güncellenemedi.");
+      }
+    }
+
+    async function deleteDeck() {
+      if (!requireAccount()) return;
+      if (!deckBuilderState.deckId) {
+        showNotice("Silinecek bir deste seçili değil.");
+        return;
+      }
+      try {
+        await apiRequest(`/api/decks/${deckBuilderState.deckId}`, { method: "DELETE" });
+        if (activeDeckId === deckBuilderState.deckId) {
+          activeDeckId = null;
+        }
+        await fetchDecks();
+        newDeck();
+        updateActiveDeckLabel();
+        showNotice("Deste silindi.");
+      } catch {
+        showNotice("Deste silinemedi.");
+      }
+    }
+
+    function addCardToDeck(cardId) {
+      if (deckBuilderState.cards.length >= 30) return;
+      if (deckBuilderState.cards.includes(cardId)) {
+        showNotice("Bu kart destede zaten var. Her karttan sadece 1 tane ekleyebilirsin.");
+        return;
+      }
+      deckBuilderState.cards.push(cardId);
+      renderDeckBuilder();
+    }
+
+    function removeCardFromDeck(index) {
+      deckBuilderState.cards.splice(index, 1);
+      renderDeckBuilder();
+    }
+
+    function onDeckSelectChange() {
+      const select = document.getElementById("deck-select");
+      const decks = loadDecks();
+      const selectedId = select ? parseInt(select.value, 10) : 0;
+      const deck = decks.find((d) => d.id === selectedId);
+      if (deck) {
+        deckBuilderState = { deckId: deck.id, name: deck.name, cards: [...deck.cards] };
+        renderDeckBuilder();
+      }
+    }
+
+    // -------------------------
+    // Deste oluşturma
+    // -------------------------
+    function createDeck() {
+      const active = getActiveDeck();
+      if (active && Array.isArray(active.cards) && active.cards.length === 30) {
+        return buildDeckFromIds(active.cards);
+      }
+      const deck = [];
+
+      const monsters = cardDatabase.filter(c => c.type === "monster");
+      const spells   = cardDatabase.filter(c => c.type === "spell");
+
+      const monsterCount = 20;
+      const spellCount   = 10;
+
+      for (let i = 0; i < monsterCount; i++) {
+        const base = monsters[Math.floor(Math.random() * monsters.length)];
+        deck.push({
+          ...base,
+          instanceId: base.id + "-M-" + i + "-" + Math.random().toString(16).slice(2),
+          isFaceDown: false
+        });
+      }
+
+      for (let i = 0; i < spellCount; i++) {
+        const base = spells[Math.floor(Math.random() * spells.length)];
+        deck.push({
+          ...base,
+          instanceId: base.id + "-S-" + i + "-" + Math.random().toString(16).slice(2),
+          isFaceDown: false
+        });
+      }
+
+      for (let i = deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [deck[i], deck[j]] = [deck[j], deck[i]];
+      }
+
+      return deck;
+    }
+
+    function emptyAttackFlags() {
+      return [false, false, false, false, false];
+    }
+
+    const initialPlayerState = () => ({
+      life: 4000,
+      deck: createDeck(),
+      hand: [],
+      fieldMonsters: [null, null, null, null, null],
+      fieldSpells: [null, null, null, null, null],
+      graveyard: [],
+      pendingReturnToHand: [],
+      maxLevelPlayed: 0,
+      maxLevelUnlocked: 1
+    });
+
+    function createInitialGameState() {
+      return {
+        players: [initialPlayerState(), initialPlayerState()],
+        currentPlayerIndex: 0,
+        turnNumber: 1,
+        hasDrawnThisTurn: false,
+        selectedAttacker: null,
+        selectedSpell: null,
+        attackedThisTurn: [emptyAttackFlags(), emptyAttackFlags()],
+        opponentEmptyAtTurnStart: [false, false],
+        turnsTaken: [0, 0],
+      peaceTurnsRemaining: 0,
+      lastAction: "",
+      history: [],
+      turnDeadline: null,
+        ready: [false, false],
+        started: false,
+        gameOver: false,
+        winner: null,
+        rematchReady: [false, false],
+        attackLockedThisTurn: [false, false],
+        coinFlipAttackLock: [false, false],
+        drawBlockNextTurn: [false, false],
+        drawBlockedThisTurn: [false, false]
+      };
+    }
+
+    let gameState = createInitialGameState();
+    let pendingCoinFlipPlayerIndex = null;
+
+    let playerCustomNames = ["", ""];
+    function getPlayerLabel(playerIndex) {
+      const base = "Oyuncu " + (playerIndex + 1);
+      const custom = playerCustomNames[playerIndex];
+      return custom ? `${base} (${custom})` : base;
+    }
+
+    function askNameForSeat(seat) {
+      const current = playerCustomNames[seat] || "";
+      const answer = prompt(`İsmini gir (Oyuncu ${seat + 1}):`, current);
+      const finalName = answer && answer.trim() ? answer.trim() : `Oyuncu ${seat + 1}`;
+      playerCustomNames[seat] = finalName;
+      return finalName;
+    }
+
+    function drawInitialHand(player) {
+      for (let i = 0; i < 5; i++) {
+        if (player.deck.length === 0) break;
+        const card = player.deck.pop();
+        player.hand.push(card);
+      }
+
+      const hasLevel1 = player.hand.some(
+        (c) => c.type === "monster" && c.level === 1
+      );
+      if (!hasLevel1) {
+        const deckIndex = player.deck.findIndex(
+          (c) => c.type === "monster" && c.level === 1
+        );
+        if (deckIndex !== -1) {
+          const swapIndex = player.hand.findIndex(
+            (c) => !(c.type === "monster" && c.level === 1)
+          );
+          if (swapIndex !== -1) {
+            const [level1] = player.deck.splice(deckIndex, 1);
+            const swapped = player.hand[swapIndex];
+            player.hand[swapIndex] = level1;
+            player.deck.push(swapped);
+          }
+        }
+      }
+    }
+
+    function resetLocalGameState() {
+      gameState = createInitialGameState();
+      gameState.players.forEach(drawInitialHand);
+      updateOpponentEmptyFlagForCurrentPlayer();
+      gameState.lastAction = "";
+      gameState.history = [];
+      gameState.gameOver = false;
+      gameState.turnDeadline = null;
+    }
+
+    function updateOpponentEmptyFlagForCurrentPlayer() {
+      const current = gameState.currentPlayerIndex;
+      const oppIndex = current === 0 ? 1 : 0;
+      const opp = gameState.players[oppIndex];
+      const empty = opp.fieldMonsters.every(m => m === null);
+      gameState.opponentEmptyAtTurnStart[current] = empty;
+    }
+
+    function canPlayerAttackThisTurn(playerIndex) {
+      if (gameState.peaceTurnsRemaining > 0) return false;
+      if (gameState.attackLockedThisTurn && gameState.attackLockedThisTurn[playerIndex]) return false;
+      if (gameState.coinFlipAttackLock && gameState.coinFlipAttackLock[playerIndex]) return false;
+      return gameState.turnsTaken[playerIndex] > 0;
+    }
+
+    function pushHistory(desc, playerIndexOverride) {
+      if (!desc) return;
+      const entry = {
+        turn: gameState.turnNumber,
+        player: typeof playerIndexOverride === "number" ? playerIndexOverride : gameState.currentPlayerIndex,
+        text: desc
+      };
+      gameState.history.unshift(entry);
+      if (gameState.history.length > 60) {
+        gameState.history.pop();
+      }
+    }
+
+    function setLastAction(desc, playerIndexOverride) {
+      const pIdx = typeof playerIndexOverride === "number" ? playerIndexOverride : gameState.currentPlayerIndex;
+      const label = getPlayerLabel(pIdx);
+      const text = desc ? `${label} ${desc}` : "";
+      gameState.lastAction = text;
+      if (text) {
+        pushHistory(text, pIdx);
+      }
+    }
+
+    function isGameStarted() {
+      return !!gameState.started;
+    }
+
+    function showCardModal(card, titleText = "Kart") {
+      const modal = document.getElementById("hidden-modal");
+      const body = document.getElementById("hidden-modal-body");
+      const title = document.getElementById("hidden-modal-title");
+      title.textContent = titleText;
+
+      let html = `<div class="history-item">`;
+      html += `<div><strong>${card.name}</strong></div>`;
+      html += `<div>${card.type === "monster" ? "Canavar" : (card.cardClass || "Büyü")}</div>`;
+      if (card.type === "monster") {
+        html += `<div>Seviye: ${card.level}</div>`;
+        html += `<div>Sınıf: ${card.cardClass || "Yok"}</div>`;
+        html += `<div>${card.basePower}</div>`;
+      } else {
+        html += `<div>Kart Türü: ${card.cardClass || "Büyü"}</div>`;
+      }
+      if (card.description) {
+        html += `<div>Efekt: ${card.description}</div>`;
+      }
+      html += `</div>`;
+
+      body.innerHTML = html;
+      modal.classList.remove("hidden");
+    }
+
+    function showNotice(message, titleText = "Uyarı") {
+      const modal = document.getElementById("notice-modal");
+      const body = document.getElementById("notice-body");
+      const title = document.getElementById("notice-title");
+      if (!modal || !body || !title) return;
+      title.textContent = titleText;
+      body.textContent = message || "";
+      modal.classList.remove("hidden");
+    }
+
+    function closeNotice() {
+      const modal = document.getElementById("notice-modal");
+      if (modal) modal.classList.add("hidden");
+    }
+
+    function showCoinFlipModal(playerIndex) {
+      const modal = document.getElementById("coinflip-modal");
+      const body = document.getElementById("coinflip-body");
+      if (!modal || !body) return;
+      pendingCoinFlipPlayerIndex = playerIndex;
+      body.textContent = "Yazı mı, tura mı?";
+      modal.classList.remove("hidden");
+    }
+
+    function closeCoinFlip() {
+      const modal = document.getElementById("coinflip-modal");
+      if (modal) modal.classList.add("hidden");
+    }
+
+    function resolveCoinFlip(choice) {
+      if (pendingCoinFlipPlayerIndex === null) return;
+      const playerIndex = pendingCoinFlipPlayerIndex;
+      pendingCoinFlipPlayerIndex = null;
+      closeCoinFlip();
+
+      const isCorrect = Math.random() < 0.5;
+      if (gameState.coinFlipAttackLock) {
+        gameState.coinFlipAttackLock[playerIndex] = !isCorrect;
+      }
+      if (isCorrect) {
+        showNotice("Doğru bildin! Bu tur saldırı yapabilirsin.", "Yazı Tura");
+      } else {
+        showNotice("Yanlış bildin! Bu tur saldırı yapamazsın.", "Yazı Tura");
+      }
+      renderAndSync();
+    }
+
+    function updateGameOverModal() {
+      const modal = document.getElementById("gameover-modal");
+      const title = document.getElementById("gameover-title");
+      const body = document.getElementById("gameover-body");
+      const status = document.getElementById("rematch-status");
+      const btn = document.getElementById("rematch-btn");
+
+      if (!modal || !title || !body || !status || !btn) return;
+      if (!gameState.gameOver) {
+        modal.classList.add("hidden");
+        return;
+      }
+
+      const winner = gameState.winner;
+      if (winner === "draw") {
+        title.textContent = "Oyun Bitti";
+        body.textContent = "Berabere!";
+      } else {
+        const label = typeof winner === "number" ? getPlayerLabel(winner) : "Bir oyuncu";
+        title.textContent = "Oyun Bitti";
+        body.textContent = `${label} kazandı!`;
+      }
+
+      const readyMine = gameState.rematchReady && gameState.rematchReady[mySeat];
+      const readyOpp = gameState.rematchReady && gameState.rematchReady[mySeat === 0 ? 1 : 0];
+      btn.disabled = !!readyMine;
+      if (isOnline) {
+        if (readyMine && readyOpp) {
+          status.textContent = "Yeniden başlatılıyor...";
+        } else if (readyMine) {
+          status.textContent = "Rakip bekleniyor...";
+        } else {
+          status.textContent = "Hazır olunca Yeniden Oyna'ya bas.";
+        }
+      } else {
+        status.textContent = "";
+      }
+
+      modal.classList.remove("hidden");
+    }
+
+    function viewOpenCard(zone, playerIndex, slotIndex) {
+      const player = gameState.players[playerIndex];
+      const collection =
+        zone === "monster" ? player.fieldMonsters :
+        zone === "spell" ? player.fieldSpells :
+        zone === "hand" ? player.hand : null;
+      if (!collection) return;
+      if (zone === "hand" && isOnline && playerIndex !== mySeat) return;
+      const card = collection[slotIndex];
+      if (!card) return;
+      const hiddenFromViewer = card.isFaceDown && playerIndex !== mySeat;
+      if (hiddenFromViewer || card.isFaceDown) return;
+      showCardModal(card, "Kart Detayı");
+    }
+
+    function viewHiddenCard(zone, playerIndex, slotIndex) {
+      // Sadece kendi gizli kartını ön izleme (oyunu etkilemez)
+      if (playerIndex !== mySeat) {
+        showNotice("Bu kart rakibe ait, içeriğini göremezsin.");
+        return;
+      }
+      const player = gameState.players[playerIndex];
+      const collection =
+        zone === "monster" ? player.fieldMonsters :
+        zone === "spell" ? player.fieldSpells : null;
+      if (!collection) return;
+      const card = collection[slotIndex];
+      if (!card || !card.isFaceDown) {
+        showNotice("Bu kart gizli değil veya burada değil.");
+        return;
+      }
+      showCardModal(card, "Gizli Kart");
+    }
+
+    function selectSwapTarget(playerIndex, slotIndex) {
+      if (gameState.gameOver) return;
+      if (!isGameStarted()) {
+        showNotice("Oyun başlamadı. Oyunu Başlat düğmesine tıklayın.");
+        return;
+      }
+      if (isOnline && !isMyTurn()) {
+        showNotice("Sıra sende değil.");
+        return;
+      }
+
+      const selSpell = gameState.selectedSpell;
+      if (!selSpell || selSpell.mode !== "swapMonsters") {
+        showNotice("Aktif bir Canavar Takası büyüsü seçili değil.");
+        return;
+      }
+
+      const casterIndex = selSpell.playerIndex;
+      if (casterIndex !== gameState.currentPlayerIndex) {
+        showNotice("Bu büyüyü sadece sırası gelen oyuncu kullanabilir.");
+        return;
+      }
+
+      const defPlayer = gameState.players[playerIndex];
+      const monster = defPlayer.fieldMonsters[slotIndex];
+      if (!monster) {
+        showNotice("Bu slotta canavar yok.");
+        return;
+      }
+
+      if (playerIndex === casterIndex) {
+        selSpell.swapOwnSlot = slotIndex;
+      } else {
+        selSpell.swapOppSlot = slotIndex;
+      }
+
+      if (selSpell.swapOwnSlot === undefined || selSpell.swapOppSlot === undefined) {
+        setLastAction("Canavar Takası için diğer hedefi seç.");
+        renderAndSync();
+        return;
+      }
+
+      const caster = gameState.players[casterIndex];
+      let spellCard;
+      if (selSpell.location === "field") {
+        const fieldCard = caster.fieldSpells[selSpell.fieldSlotIndex];
+        if (!fieldCard || fieldCard.instanceId !== selSpell.spellInstanceId) {
+          showNotice("Büyü kartı sahada bulunamadı.");
+          gameState.selectedSpell = null;
+          renderAndSync();
+          return;
+        }
+        spellCard = fieldCard;
+        caster.fieldSpells[selSpell.fieldSlotIndex] = null;
+      } else {
+        const spellIdx = caster.hand.findIndex(
+          c => c.instanceId === selSpell.spellInstanceId
+        );
+        if (spellIdx === -1) {
+          showNotice("Büyü kartı artık elinde değil.");
+          gameState.selectedSpell = null;
+          renderAndSync();
+          return;
+        }
+        [spellCard] = caster.hand.splice(spellIdx, 1);
+      }
+
+      const oppIndex = casterIndex === 0 ? 1 : 0;
+      const ownMonster = caster.fieldMonsters[selSpell.swapOwnSlot];
+      const oppMonster = gameState.players[oppIndex].fieldMonsters[selSpell.swapOppSlot];
+
+      caster.fieldMonsters[selSpell.swapOwnSlot] = oppMonster;
+      gameState.players[oppIndex].fieldMonsters[selSpell.swapOppSlot] = ownMonster;
+      caster.graveyard.push(spellCard);
+
+      setLastAction(`${spellCard.name} kullanıldı, canavarlar yer değiştirdi.`);
+      gameState.selectedSpell = null;
+      renderAndSync();
+    }
+
+    // -------------------------
+    // Online (oda ve senkron)
+    // -------------------------
+    const WS_URL = (location.protocol === "https:" ? "wss://" : "ws://") + location.host;
+    let socket = null;
+    let roomCode = "";
+    let mySeat = 0;
+    let isOnline = false;
+    let suppressBroadcast = false;
+    let peerPresent = false;
+    let pendingMessages = [];
+    let pendingHandSwap = null;
+
+    function setConnStatus(text) {
+      const el = document.getElementById("conn-status");
+      if (el) el.textContent = text;
+    }
+
+    function setConnRoom(text) {
+      const el = document.getElementById("conn-room");
+      if (el) el.textContent = text;
+    }
+
+    function tryStartGame() {
+      if (gameState.gameOver) return;
+      const seat = mySeat;
+      gameState.ready[seat] = true;
+
+      const allReady = gameState.ready[0] && gameState.ready[1];
+      if (!isOnline) {
+        gameState.ready = [true, true];
+      }
+
+      if (allReady || !isOnline) {
+        if (!gameState.started) {
+          gameState.started = true;
+          gameState.turnDeadline = Date.now() + TURN_LIMIT_MS;
+          setLastAction("oyunu başlattı.");
+        }
+      } else {
+        setLastAction("hazır oldu, rakibin de Oyunu Başlat'a basması gerekiyor.");
+      }
+
+      renderAndSync();
+      startTurnTimer();
+    }
+
+    function ensureSocket() {
+      if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
+        return socket;
+      }
+      socket = new WebSocket(WS_URL);
+      setConnStatus("Bağlanıyor...");
+      socket.onopen = () => {
+        setConnStatus("Bağlı");
+        if (pendingMessages.length) {
+          const toSend = pendingMessages.slice();
+          pendingMessages = [];
+          toSend.forEach((obj) => sendWS(obj));
+        }
+      };
+      socket.onclose = () => {
+        setConnStatus("Çevrimdışı");
+        isOnline = false;
+        roomCode = "";
+        peerPresent = false;
+        setConnRoom("");
+      };
+      socket.onerror = () => {
+        setConnStatus("Hata");
+      };
+      socket.onmessage = handleSocketMessage;
+      return socket;
+    }
+
+    function sendWS(obj) {
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify(obj));
+        return;
+      }
+      pendingMessages.push(obj);
+      ensureSocket();
+    }
+
+    function broadcastState() {
+      if (!isOnline || !socket || socket.readyState !== WebSocket.OPEN) return;
+      sendWS({
+        type: "relay",
+        payload: {
+          kind: "syncState",
+          state: {
+            gameState,
+            playerCustomNames
+          }
+        }
+      });
+    }
+
+    function applyRemoteState(statePayload) {
+      if (!statePayload || !statePayload.gameState) return;
+      suppressBroadcast = true;
+      gameState = statePayload.gameState;
+      playerCustomNames = statePayload.playerCustomNames || playerCustomNames;
+      renderAndSync(false);
+      suppressBroadcast = false;
+    }
+
+    function handleSocketMessage(event) {
+      let msg;
+      try {
+        msg = JSON.parse(event.data);
+      } catch (e) {
+        return;
+      }
+
+      if (msg.type === "roomCreated") {
+        roomCode = msg.code;
+        mySeat = msg.seat || 0;
+        isOnline = true;
+        peerPresent = false;
+        askNameForSeat(mySeat);
+        resetLocalGameState();
+        startTurnTimer();
+        renderAndSync(true);
+        setConnStatus(`Oda oluşturuldu (Sen: Oyuncu ${mySeat + 1})`);
+        setConnRoom(`Oda kodu: ${roomCode}`);
+        return;
+      }
+
+      if (msg.type === "roomJoined") {
+        roomCode = msg.code;
+        mySeat = msg.seat || 1;
+        isOnline = true;
+        peerPresent = false;
+        const myName = askNameForSeat(mySeat);
+        sendWS({ type: "relay", payload: { kind: "setName", seat: mySeat, name: myName } });
+        startTurnTimer();
+        setConnStatus(`Odaya katıldın (Sen: Oyuncu ${mySeat + 1})`);
+        setConnRoom(`Oda kodu: ${roomCode} | Senkron bekleniyor...`);
+        return;
+      }
+
+      if (msg.type === "peerJoined") {
+        peerPresent = true;
+        setConnRoom(`Oda kodu: ${roomCode} | Rakip bağlandı`);
+        if (mySeat === 0) {
+          broadcastState();
+        }
+        return;
+      }
+
+      if (msg.type === "peerLeft") {
+        peerPresent = false;
+        setConnRoom(`Oda kodu: ${roomCode} | Rakip ayrıldı`);
+        return;
+      }
+
+      if (msg.type === "relay" && msg.payload && msg.payload.kind === "syncState") {
+        applyRemoteState(msg.payload.state);
+        return;
+      }
+
+      if (msg.type === "relay" && msg.payload && msg.payload.kind === "setName") {
+        const seat = msg.payload.seat;
+        const name = msg.payload.name;
+        if (seat === 0 || seat === 1) {
+          playerCustomNames[seat] = name || `Oyuncu ${seat + 1}`;
+          renderAndSync(false);
+          if (mySeat === 0 && peerPresent) {
+            broadcastState();
+          }
+        }
+        return;
+      }
+
+      if (msg.type === "relay" && msg.payload && msg.payload.kind === "handSwapRequest") {
+        const casterIndex = msg.payload.casterIndex;
+        const caster = gameState.players[casterIndex];
+        if (!caster || !caster.hand.length) {
+          sendWS({ type: "relay", payload: { kind: "handSwapResponse", casterIndex, pickId: null } });
+          return;
+        }
+        const pick = pickCardFromHand(caster, "Rakibin elinden almak istediğin kartı seç:");
+        sendWS({ type: "relay", payload: { kind: "handSwapResponse", casterIndex, pickId: pick ? pick.instanceId : null } });
+        return;
+      }
+
+      if (msg.type === "relay" && msg.payload && msg.payload.kind === "handSwapResponse") {
+        if (!pendingHandSwap) return;
+        if (msg.payload.casterIndex !== pendingHandSwap.casterIndex) return;
+        if (!msg.payload.pickId) {
+          showNotice("Rakip kart seçmedi.");
+          pendingHandSwap = null;
+          renderAndSync();
+          return;
+        }
+        pendingHandSwap.oppPickId = msg.payload.pickId;
+        if (pendingHandSwap.casterPickId && pendingHandSwap.oppPickId) {
+          executeHandSwap(
+            pendingHandSwap.casterIndex,
+            pendingHandSwap.casterPickId,
+            pendingHandSwap.oppPickId,
+            pendingHandSwap.spellCard
+          );
+          pendingHandSwap = null;
+        }
+        return;
+      }
+
+      if (msg.type === "relay" && msg.payload && msg.payload.kind === "rematchReady") {
+        const seat = msg.payload.seat;
+        if (seat === 0 || seat === 1) {
+          gameState.rematchReady[seat] = true;
+          updateGameOverModal();
+          if (gameState.rematchReady[0] && gameState.rematchReady[1] && mySeat === 0) {
+            resetLocalGameState();
+            broadcastState();
+          } else {
+            renderAndSync(false);
+          }
+        }
+        return;
+      }
+
+      if (msg.type === "error") {
+        showNotice("Sunucu hatası: " + (msg.reason || "bilinmiyor"));
+        return;
+      }
+    }
+
+    function createRoom() {
+      ensureSocket();
+      sendWS({ type: "createRoom" });
+    }
+
+    function joinRoom() {
+      const code = prompt("Oda kodu gir:", "");
+      if (!code) return;
+      ensureSocket();
+      sendWS({ type: "joinRoom", code: code.trim().toUpperCase() });
+    }
+
+    function isMyTurn() {
+      if (!isOnline) return true;
+      return gameState.currentPlayerIndex === mySeat;
+    }
+
+    // -------------------------
+    // Güç hesaplama (auralar dahil)
+    // -------------------------
+    function getEffectivePower(playerIndex, slotIndex) {
+      const player = gameState.players[playerIndex];
+      const monster = player.fieldMonsters[slotIndex];
+      if (!monster) return 0;
+
+      let power = monster.basePower || 0;
+
+      player.fieldMonsters.forEach((other) => {
+        if (!other || !other.effect) return;
+        const e = other.effect;
+
+        if (e.auraBuffAllies) {
+          const isSame = other === monster;
+          if (e.excludeSelfFromAura && isSame) return;
+          power += e.auraBuffAllies;
+        }
+      });
+
+      player.fieldSpells.forEach((spell) => {
+        if (!spell || spell.isFaceDown) return;
+        if (spell.spellEffect && spell.spellEffect.kind === "continuousBuffAllies200") {
+          power += 200;
+        }
+      });
+
+      return power;
+    }
+
+    function canDirectAttackOnOpponent(attackerPlayerIndex) {
+      if (gameState.peaceTurnsRemaining > 0) return false;
+      const defIndex = attackerPlayerIndex === 0 ? 1 : 0;
+      const opp = gameState.players[defIndex];
+      const fieldEmptyNow = opp.fieldMonsters.every(m => m === null);
+      const wasEmptyAtTurnStart = gameState.opponentEmptyAtTurnStart[attackerPlayerIndex];
+      return fieldEmptyNow && wasEmptyAtTurnStart;
+    }
+
+    function checkGameOver() {
+      const p0Life = gameState.players[0].life;
+      const p1Life = gameState.players[1].life;
+      if (p0Life <= 0 && p1Life <= 0) {
+        gameState.gameOver = true;
+        gameState.winner = "draw";
+      } else if (p0Life <= 0) {
+        gameState.gameOver = true;
+        gameState.winner = 1;
+      } else if (p1Life <= 0) {
+        gameState.gameOver = true;
+        gameState.winner = 0;
+      }
+      if (gameState.gameOver) {
+        updateGameOverModal();
+        renderAndSync();
+      }
+    }
+
+    function requestRematch() {
+      if (!gameState.gameOver) return;
+      const seat = mySeat;
+      gameState.rematchReady[seat] = true;
+      updateGameOverModal();
+      if (!isOnline) {
+        resetLocalGameState();
+        renderAndSync();
+        return;
+      }
+      sendWS({ type: "relay", payload: { kind: "rematchReady", seat } });
+      if (gameState.rematchReady[0] && gameState.rematchReady[1] && mySeat === 0) {
+        resetLocalGameState();
+        broadcastState();
+      }
+    }
+
+    // -------------------------
+    // Canavar mezarlığa giderken tetiklenen efektler
+    // -------------------------
+    function onMonsterSentToGraveyard(playerIndex, monster, cause = "") {
+      if (!monster) return;
+      const e = monster.effect;
+      const player = gameState.players[playerIndex];
+
+      if (e && e.onDeathReturnSpellFromGY) {
+        if (player.hand.length < 8) {
+          const pick = pickSpellFromGraveyard(player);
+          if (pick) {
+            const [spellCard] = player.graveyard.splice(pick.index, 1);
+            player.hand.push(spellCard);
+            const extraText = `${monster.name} öldüğü için mezarlıktan bir büyü eline geldi.`;
+            setLastAction(extraText, playerIndex);
+          }
+        }
+      }
+
+      if (cause === "battle" && e && e.onBattleDeathReturnToHand) {
+        const list = player.pendingReturnToHand || (player.pendingReturnToHand = []);
+        list.push(monster.instanceId);
+      }
+
+      gameState.players.forEach((pl) => {
+        pl.fieldMonsters.forEach((m) => {
+          if (m && m.effect && m.effect.onAnyMonsterSentToGyGainPower) {
+            m.basePower += m.effect.onAnyMonsterSentToGyGainPower;
+          }
+        });
+      });
+    }
+
+    // -------------------------
+    // Tur başı efektler
+    // -------------------------
+    function applyTurnStartEffects() {
+      if (gameState.gameOver) return;
+
+      const current = gameState.currentPlayerIndex;
+      const player = gameState.players[current];
+      const oppIndex = current === 0 ? 1 : 0;
+      const opp = gameState.players[oppIndex];
+
+      const oppHasCoinFlipWizard = opp.fieldMonsters.some(
+        (m) => m && ((m.effect && m.effect.onOpponentTurnStartCoinFlip) || m.name === "Bıyıklı sihirbaz")
+      );
+      if (oppHasCoinFlipWizard) {
+        if (!isOnline || isMyTurn()) {
+          if (gameState.coinFlipAttackLock) {
+            gameState.coinFlipAttackLock[current] = true;
+          }
+          showCoinFlipModal(current);
+        }
+      }
+
+      let totalBurn = 0;
+      let parts = [];
+
+      player.fieldMonsters.forEach((m) => {
+        if (!m || !m.effect) return;
+        const e = m.effect;
+
+        if (e.turnStartDamageOpponent) {
+          totalBurn += e.turnStartDamageOpponent;
+          parts.push(`${m.name} rakibe ${e.turnStartDamageOpponent} hasar verdi.`);
+        }
+      });
+
+      if (totalBurn > 0) {
+        opp.life = Math.max(0, opp.life - totalBurn);
+        const text = parts.join(" ");
+        setLastAction(text);
+        checkGameOver();
+      }
+    }
+
+    // -------------------------
+    // Kart Oynama (Canavar) - Açık veya Gizli
+    // -------------------------
+    function playCardFromHand(handIndex, faceDown = false) {
+      if (gameState.gameOver) return;
+      if (!isGameStarted()) {
+        showNotice("Oyun başlamadı. Oyunu Başlat düğmesine tıklayın.");
+        return;
+      }
+      if (isOnline && !isMyTurn()) {
+        showNotice("Sıra sende değil.");
+        return;
+      }
+
+      const current = gameState.currentPlayerIndex;
+      const player = gameState.players[current];
+      const card = player.hand[handIndex];
+      if (!card) return;
+
+      if (card.type !== "monster") {
+        showNotice("Bu buton sadece canavar kartları için.");
+        return;
+      }
+
+      const emptyIndex = player.fieldMonsters.findIndex(m => m === null);
+      if (emptyIndex === -1) {
+        showNotice("Sahada boş canavar alanı yok (max 5).");
+        return;
+      }
+
+      const maxLevel = player.maxLevelUnlocked || 1;
+      if (card.level > maxLevel) {
+        showNotice(
+          "Bu seviyedeki canavarı henüz oynayamazsın.\n" +
+          "Şu an en fazla " + maxLevel + ". seviye canavar oynayabilirsin."
+        );
+        return;
+      }
+
+      if (faceDown) {
+        const oppIndex = current === 0 ? 1 : 0;
+        const opp = gameState.players[oppIndex];
+        const oppBlocksFaceDown = opp.fieldMonsters.some(
+          (m) => m && m.effect && m.effect.preventOpponentSetFaceDownMonsters
+        );
+        if (oppBlocksFaceDown) {
+          showNotice("Rakibin sahasında gizli canavar yerleştirmeyi engelleyen bir canavar var.");
+          return;
+        }
+      }
+
+      card.isFaceDown = !!faceDown;
+
+      player.fieldMonsters[emptyIndex] = card;
+      player.hand.splice(handIndex, 1);
+
+      if (card.level > player.maxLevelPlayed) {
+        player.maxLevelPlayed = card.level;
+      }
+
+      let log;
+      if (faceDown) {
+        log = `bir canavarı gizli olarak sahaya yerleştirdi.`;
+      } else {
+        log = `${card.name} (Seviye ${card.level}) sahaya çağrıldı.`;
+      }
+
+      if (card.effect && card.effect.onSummonHealOwner) {
+        player.life += card.effect.onSummonHealOwner;
+        log += ` ve ${card.effect.onSummonHealOwner} can kazandırdı.`;
+      }
+
+      setLastAction(log);
+      renderAndSync();
+    }
+
+    // -------------------------
+    // Büyüleri gizli olarak sahaya koyma
+    // -------------------------
+    function setSpellFaceDownFromHand(handIndex) {
+      if (gameState.gameOver) return;
+      if (!isGameStarted()) {
+        showNotice("Oyun başlamadı. Oyunu Başlat düğmesine tıklayın.");
+        return;
+      }
+      if (isOnline && !isMyTurn()) {
+        showNotice("Sıra sende değil.");
+        return;
+      }
+
+      const current = gameState.currentPlayerIndex;
+      const player = gameState.players[current];
+      const card = player.hand[handIndex];
+      if (!card || card.type !== "spell") {
+        showNotice("Bu işlem sadece büyü kartları için kullanılabilir.");
+        return;
+      }
+
+      const emptyIndex = player.fieldSpells.findIndex(s => s === null);
+      if (emptyIndex === -1) {
+        showNotice("Büyü / tuzak alanında boş slot yok.");
+        return;
+      }
+
+      card.isFaceDown = true;
+      player.fieldSpells[emptyIndex] = card;
+      player.hand.splice(handIndex, 1);
+
+      setLastAction(card.cardClass === "Tuzak Kartı"
+        ? `bir büyü kartını gizli olarak sahaya yerleştirdi.`
+        : `bir büyüyü gizli olarak sahaya yerleştirdi.`);
+      gameState.selectedAttacker = null;
+      gameState.selectedSpell = null;
+      renderAndSync();
+    }
+
+    // -------------------------
+    // Büyü Oynama (El'den, anında)
+    // -------------------------
+    function pickMonsterFromGraveyard(player) {
+      const options = player.graveyard
+        .map((card, index) => ({ card, index }))
+        .filter((entry) => entry.card.type === "monster");
+
+      if (options.length === 0) return null;
+      if (options.length === 1) return options[0];
+
+      const list = options
+        .map((entry, idx) => {
+          const c = entry.card;
+          return `${idx + 1}. ${c.name} (Seviye ${c.level} | Güç ${c.basePower})`;
+        })
+        .join("\n");
+
+      const choice = prompt(
+        "Mezardan döndürülecek canavarı seç:\n" + list + "\nSeçim numarası:",
+        "1"
+      );
+      if (!choice) return null;
+      const n = parseInt(choice, 10);
+      if (!Number.isFinite(n) || n < 1 || n > options.length) return null;
+      return options[n - 1];
+    }
+
+    function pickSpellFromGraveyard(player) {
+      const options = player.graveyard
+        .map((card, index) => ({ card, index }))
+        .filter((entry) => entry.card.type === "spell");
+
+      if (options.length === 0) return null;
+      if (options.length === 1) return options[0];
+
+      const list = options
+        .map((entry, idx) => {
+          const c = entry.card;
+          return `${idx + 1}. ${c.name} (${c.cardClass || "Büyü"})`;
+        })
+        .join("\n");
+
+      const choice = prompt(
+        "Mezardan alınacak büyüyü seç:\n" + list + "\nSeçim numarası:",
+        "1"
+      );
+      if (!choice) return null;
+      const n = parseInt(choice, 10);
+      if (!Number.isFinite(n) || n < 1 || n > options.length) return null;
+      return options[n - 1];
+    }
+
+    function pickCardFromHand(player, titleText) {
+      if (player.hand.length === 0) return null;
+      const list = player.hand
+        .map((c, idx) => `${idx + 1}. ${c.name} (${c.type === "monster" ? "Canavar" : (c.cardClass || "Büyü")})`)
+        .join("\n");
+      const choice = prompt(
+        (titleText || "Kart seç:") + "\n" + list + "\nSeçim numarası:",
+        "1"
+      );
+      if (!choice) return null;
+      const n = parseInt(choice, 10);
+      if (!Number.isFinite(n) || n < 1 || n > player.hand.length) return null;
+      return {
+        index: n - 1,
+        instanceId: player.hand[n - 1].instanceId
+      };
+    }
+
+    function executeHandSwap(casterIndex, casterPickId, oppPickId, spellCard) {
+      const oppIndex = casterIndex === 0 ? 1 : 0;
+      const caster = gameState.players[casterIndex];
+      const opp = gameState.players[oppIndex];
+      const casterCardIdx = caster.hand.findIndex((c) => c.instanceId === oppPickId);
+      const oppCardIdx = opp.hand.findIndex((c) => c.instanceId === casterPickId);
+      if (casterCardIdx === -1 || oppCardIdx === -1) {
+        showNotice("Kart takası sırasında kart bulunamadı.");
+        return;
+      }
+      const [fromOpp] = opp.hand.splice(oppCardIdx, 1);
+      const [fromCaster] = caster.hand.splice(casterCardIdx, 1);
+      caster.hand.push(fromOpp);
+      opp.hand.push(fromCaster);
+      setLastAction(`${spellCard.name} kullanıldı, kartlar takas edildi.`);
+      gameState.selectedAttacker = null;
+      gameState.selectedSpell = null;
+      renderAndSync();
+    }
+
+    function pickCardFromTopOfDeck(player, count) {
+      const takeCount = Math.min(count, player.deck.length);
+      if (takeCount === 0) return null;
+      const slice = player.deck.slice(-takeCount);
+      const list = slice
+        .map((c, idx) => {
+          if (c.type === "monster") {
+            return `${idx + 1}. ${c.name} (Canavar | Seviye ${c.level} | Güç ${c.basePower})`;
+          }
+          return `${idx + 1}. ${c.name} (${c.cardClass || "Büyü"})`;
+        })
+        .join("\n");
+      const choice = prompt(
+        `Destenin üstündeki ${takeCount} kart:\n${list}\nSeçim numarası:`,
+        "1"
+      );
+      if (!choice) return null;
+      const n = parseInt(choice, 10);
+      if (!Number.isFinite(n) || n < 1 || n > takeCount) return null;
+      return { pickIndex: n - 1, cards: slice };
+    }
+
+    function tryNegateSpellOrTrap(casterIndex, cardName, removeCardFn) {
+      const oppIndex = casterIndex === 0 ? 1 : 0;
+      const opp = gameState.players[oppIndex];
+      const oppLocksTraps = opp.fieldMonsters.some(
+        (m) => m && m.effect && m.effect.preventOpponentTraps
+      );
+      if (oppLocksTraps) return false;
+      const trapIndex = opp.fieldSpells.findIndex(
+        (s) =>
+          s &&
+          s.isFaceDown &&
+          s.cardClass === "Tuzak Kartı" &&
+          s.spellEffect &&
+          s.spellEffect.kind === "trapNegateSpell"
+      );
+      if (trapIndex === -1) return false;
+
+      const trap = opp.fieldSpells[trapIndex];
+      opp.fieldSpells[trapIndex] = null;
+      opp.graveyard.push(trap);
+      removeCardFn();
+      setLastAction(`${trap.name} tuzağı açıldı ve ${cardName} iptal edildi.`, oppIndex);
+      gameState.selectedAttacker = null;
+      gameState.selectedSpell = null;
+      renderAndSync();
+      return true;
+    }
+
+    function tryNegateTrapDuringAttack(attackerIndex, defPlayerIndex, defTrapIndex) {
+      const attacker = gameState.players[attackerIndex];
+      const negatorIndex = attackerIndex;
+      const negatorTrapIndex = attacker.fieldSpells.findIndex(
+        (s) =>
+          s &&
+          s.isFaceDown &&
+          s.cardClass === "Tuzak Kartı" &&
+          s.spellEffect &&
+          s.spellEffect.kind === "trapNegateSpell"
+      );
+      if (negatorTrapIndex === -1) return false;
+
+      const negatorTrap = attacker.fieldSpells[negatorTrapIndex];
+      attacker.fieldSpells[negatorTrapIndex] = null;
+      attacker.graveyard.push(negatorTrap);
+
+      const defender = gameState.players[defPlayerIndex];
+      const defTrap = defender.fieldSpells[defTrapIndex];
+      if (defTrap) {
+        defender.fieldSpells[defTrapIndex] = null;
+        defender.graveyard.push(defTrap);
+      }
+
+      setLastAction(
+        `${negatorTrap.name} tuzağı açıldı ve ${defTrap ? defTrap.name : "tuzak"} iptal edildi.`,
+        negatorIndex
+      );
+      return true;
+    }
+
+    function playSpellFromHand(handIndex) {
+      if (gameState.gameOver) return;
+      if (!isGameStarted()) {
+        showNotice("Oyun başlamadı. Oyunu Başlat düğmesine tıklayın.");
+        return;
+      }
+      if (isOnline && !isMyTurn()) {
+        showNotice("Sıra sende değil.");
+        return;
+      }
+
+      const current = gameState.currentPlayerIndex;
+      const player = gameState.players[current];
+      const card = player.hand[handIndex];
+      if (!card || card.type !== "spell") {
+        showNotice("Bu kart bir büyü değil.");
+        return;
+      }
+
+      if (card.cardClass === "Tuzak Kartı") {
+        showNotice("Tuzak kartları sadece gizli olarak konulur.");
+        return;
+      }
+
+      const oppIndex = current === 0 ? 1 : 0;
+      const opp = gameState.players[oppIndex];
+
+      const oppLocksSpells = opp.fieldMonsters.some(
+        (m) => m && m.effect && m.effect.preventOpponentSpells
+      );
+      if (oppLocksSpells) {
+        showNotice("Rakibin sahasında büyü kullanımını engelleyen bir canavar var. Büyü oynayamazsın.");
+        return;
+      }
+
+      const kind = card.spellEffect && card.spellEffect.kind;
+
+      function removeSpellFromHandByInstance(instanceId) {
+        const idx = player.hand.findIndex(c => c.instanceId === instanceId);
+        if (idx >= 0) {
+          const [spellCard] = player.hand.splice(idx, 1);
+          player.graveyard.push(spellCard);
+        }
+      }
+
+      if (tryNegateSpellOrTrap(current, card.name, () => removeSpellFromHandByInstance(card.instanceId))) {
+        return;
+      }
+
+      if (kind === "continuousBuffAllies200") {
+        const emptyIndex = player.fieldSpells.findIndex(s => s === null);
+        if (emptyIndex === -1) {
+          showNotice("Büyü / tuzak alanında boş slot yok.");
+          return;
+        }
+        const [spellCard] = player.hand.splice(handIndex, 1);
+        spellCard.isFaceDown = false;
+        player.fieldSpells[emptyIndex] = spellCard;
+        setLastAction(`${spellCard.name} sahaya yerleştirildi. Etkisi aktif.`);
+        gameState.selectedAttacker = null;
+        gameState.selectedSpell = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "draw2") {
+        let drawn = 0;
+        for (let i = 0; i < 2; i++) {
+          if (player.deck.length > 0 && player.hand.length < 8) {
+            const c = player.deck.pop();
+            player.hand.push(c);
+            drawn++;
+          }
+        }
+        removeSpellFromHandByInstance(card.instanceId);
+        setLastAction(`${card.name} kullanıldı ve ${drawn} kart çekti.`);
+        gameState.selectedAttacker = null;
+        gameState.selectedSpell = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "destroyOppMonster") {
+        const oppHasMonster = opp.fieldMonsters.some(m => m !== null);
+        if (!oppHasMonster) {
+          showNotice("Rakibin sahasında canavar yok, bu büyüyü şu anda kullanamazsın.");
+          return;
+        }
+        gameState.selectedSpell = {
+          playerIndex: current,
+          spellInstanceId: card.instanceId,
+          mode: "destroyOppMonster",
+          location: "hand"
+        };
+        setLastAction(`${card.name} seçildi. Yok etmek için rakip sahasındaki bir canavardaki "Bu Büyüyle Yok Et" butonuna tıkla.`);
+        gameState.selectedAttacker = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "discardOpp2") {
+        if (opp.hand.length === 0) {
+          showNotice("Rakibin elinde kart yok, bu büyüyü şu anda kullanamazsın.");
+          return;
+        }
+        let count = Math.min(2, opp.hand.length);
+        for (let i = 0; i < count; i++) {
+          const r = Math.floor(Math.random() * opp.hand.length);
+          const [discarded] = opp.hand.splice(r, 1);
+          opp.graveyard.push(discarded);
+        }
+        removeSpellFromHandByInstance(card.instanceId);
+        setLastAction(`${card.name} kullanıldı ve rakibin elinden ${count} kart mezarlığa gönderildi.`);
+        gameState.selectedAttacker = null;
+        gameState.selectedSpell = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "heal500") {
+        player.life += 500;
+        removeSpellFromHandByInstance(card.instanceId);
+        setLastAction(`${card.name} kullanıldı ve 500 can kazandı.`);
+        gameState.selectedAttacker = null;
+        gameState.selectedSpell = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "boardWipe") {
+        for (let pIndex = 0; pIndex < 2; pIndex++) {
+          const pl = gameState.players[pIndex];
+          for (let s = 0; s < pl.fieldMonsters.length; s++) {
+            const m = pl.fieldMonsters[s];
+            if (m) {
+              pl.graveyard.push(m);
+              pl.fieldMonsters[s] = null;
+              gameState.attackedThisTurn[pIndex][s] = false;
+              onMonsterSentToGraveyard(pIndex, m);
+            }
+          }
+        }
+        gameState.selectedAttacker = null;
+        gameState.selectedSpell = null;
+        removeSpellFromHandByInstance(card.instanceId);
+        setLastAction(`${card.name} kullanıldı, sahadaki tüm canavarlar yok edildi.`);
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "steal1") {
+        if (opp.hand.length === 0) {
+          showNotice("Rakibin elinde kart yok, bu büyüyü şu anda kullanamazsın.");
+          return;
+        }
+        if (player.hand.length >= 8) {
+          showNotice("Elin dolu (8 kart). Bu büyüyle kart çalamazsın.");
+          return;
+        }
+        const r = Math.floor(Math.random() * opp.hand.length);
+        const [stolen] = opp.hand.splice(r, 1);
+        player.hand.push(stolen);
+        removeSpellFromHandByInstance(card.instanceId);
+        setLastAction(`${card.name} kullanıldı ve rakibin elinden bir kart çaldı.`);
+        gameState.selectedAttacker = null;
+        gameState.selectedSpell = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "peace2Turns") {
+        gameState.peaceTurnsRemaining = Math.max(gameState.peaceTurnsRemaining, 2);
+        removeSpellFromHandByInstance(card.instanceId);
+        setLastAction(`${card.name} kullanıldı, sonraki 2 oyuncu turu boyunca saldırı yapılamaz.`);
+        gameState.selectedAttacker = null;
+        gameState.selectedSpell = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "destroyOppHiddenSpells") {
+        let destroyed = 0;
+        for (let i = 0; i < opp.fieldSpells.length; i++) {
+          const s = opp.fieldSpells[i];
+          if (s && s.isFaceDown) {
+            opp.graveyard.push(s);
+            opp.fieldSpells[i] = null;
+            destroyed++;
+          }
+        }
+        removeSpellFromHandByInstance(card.instanceId);
+        setLastAction(`${card.name} kullanıldı, rakibin ${destroyed} gizli büyü/tuzak kartı mezarlığa gönderildi.`);
+        gameState.selectedAttacker = null;
+        gameState.selectedSpell = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "buffOwnMonster400") {
+        const hasMonster = player.fieldMonsters.some(m => m !== null);
+        if (!hasMonster) {
+          showNotice("Sahanda canavar yok, bu büyüyü şu anda kullanamazsın.");
+          return;
+        }
+        gameState.selectedSpell = {
+          playerIndex: current,
+          spellInstanceId: card.instanceId,
+          mode: "buffOwnMonster",
+          location: "hand"
+        };
+        setLastAction(`${card.name} seçildi. Güç vermek için kendi sahandaki bir canavardaki "Bu Büyüyle Güçlendir" butonuna tıkla.`);
+        gameState.selectedAttacker = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "debuffOppMonster400") {
+        const oppHasMonster = opp.fieldMonsters.some(m => m !== null);
+        if (!oppHasMonster) {
+          showNotice("Rakibin sahasında canavar yok, bu büyüyü şu anda kullanamazsın.");
+          return;
+        }
+        gameState.selectedSpell = {
+          playerIndex: current,
+          spellInstanceId: card.instanceId,
+          mode: "debuffOppMonster",
+          location: "hand"
+        };
+        setLastAction(`${card.name} seçildi. Güç düşürmek için rakip sahasındaki bir canavardaki "Bu Büyüyle Güç Azalt" butonuna tıkla.`);
+        gameState.selectedAttacker = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "lockOppDraw1") {
+        gameState.drawBlockedThisTurn[oppIndex] = true;
+        gameState.drawBlockNextTurn[oppIndex] = false;
+        removeSpellFromHandByInstance(card.instanceId);
+        setLastAction(`${card.name} kullanıldı, rakip sıradaki tur kart çekemez.`);
+        gameState.selectedAttacker = null;
+        gameState.selectedSpell = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "wipeOppIf3") {
+        const oppCount = opp.fieldMonsters.filter(m => m !== null).length;
+        if (oppCount < 3) {
+          showNotice("Rakibin sahasında en az 3 canavar olmalı.");
+          return;
+        }
+        for (let s = 0; s < opp.fieldMonsters.length; s++) {
+          const m = opp.fieldMonsters[s];
+          if (m) {
+            opp.graveyard.push(m);
+            opp.fieldMonsters[s] = null;
+            gameState.attackedThisTurn[oppIndex][s] = false;
+            onMonsterSentToGraveyard(oppIndex, m);
+          }
+        }
+        removeSpellFromHandByInstance(card.instanceId);
+        setLastAction(`${card.name} kullanıldı, rakibin sahasındaki tüm canavarlar yok edildi.`);
+        gameState.selectedAttacker = null;
+        gameState.selectedSpell = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "lockOppMonsterAttack2") {
+        const oppHasMonster = opp.fieldMonsters.some(m => m !== null);
+        if (!oppHasMonster) {
+          showNotice("Rakibin sahasında canavar yok, bu büyüyü şu anda kullanamazsın.");
+          return;
+        }
+        gameState.selectedSpell = {
+          playerIndex: current,
+          spellInstanceId: card.instanceId,
+          mode: "lockOppMonsterAttack",
+          location: "hand"
+        };
+        setLastAction(`${card.name} seçildi. Kilitlemek için rakip sahasındaki bir canavardaki "Bu Büyüyle Kilitle" butonuna tıkla.`);
+        gameState.selectedAttacker = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "lockOppMonsterAttack2") {
+        const oppHasMonster = opp.fieldMonsters.some(m => m !== null);
+        if (!oppHasMonster) {
+          showNotice("Rakibin sahasında canavar yok, bu büyüyü şu anda kullanamazsın.");
+          return;
+        }
+        gameState.selectedSpell = {
+          playerIndex: current,
+          spellInstanceId: card.instanceId,
+          mode: "lockOppMonsterAttack",
+          location: "field",
+          fieldSlotIndex: slotIndex
+        };
+        setLastAction(`${card.name} gizli büyüsü açıldı. Kilitlemek için rakip sahasındaki bir canavardaki "Bu Büyüyle Kilitle" butonuna tıkla.`);
+        gameState.selectedAttacker = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "returnOwnMonsterToHand") {
+        const hasOwn = player.fieldMonsters.some(m => m !== null);
+        if (!hasOwn) {
+          showNotice("Sahanda canavar yok, bu büyüyü şu anda kullanamazsın.");
+          return;
+        }
+        if (player.hand.length >= 8) {
+          showNotice("Elin dolu (8 kart). Bu büyüyle canavar geri alamazsın.");
+          return;
+        }
+        gameState.selectedSpell = {
+          playerIndex: current,
+          spellInstanceId: card.instanceId,
+          mode: "returnOwnMonsterToHand",
+          location: "hand"
+        };
+        setLastAction(`${card.name} seçildi. Geri almak için kendi sahandaki bir canavardaki "Bu Büyüyle Geri Al" butonuna tıkla.`);
+        gameState.selectedAttacker = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "returnOwnMonsterToHand") {
+        const hasOwn = player.fieldMonsters.some(m => m !== null);
+        if (!hasOwn) {
+          showNotice("Sahanda canavar yok, bu büyüyü şu anda kullanamazsın.");
+          return;
+        }
+        if (player.hand.length >= 8) {
+          showNotice("Elin dolu (8 kart). Bu büyüyle canavar geri alamazsın.");
+          return;
+        }
+        gameState.selectedSpell = {
+          playerIndex: current,
+          spellInstanceId: card.instanceId,
+          mode: "returnOwnMonsterToHand",
+          location: "field",
+          fieldSlotIndex: slotIndex
+        };
+        setLastAction(`${card.name} gizli büyüsü açıldı. Geri almak için kendi sahandaki bir canavardaki "Bu Büyüyle Geri Al" butonuna tıkla.`);
+        gameState.selectedAttacker = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "swapFromOppHand") {
+        if (opp.hand.length === 0 || player.hand.length <= 1) {
+          showNotice("Takas için iki oyuncunun da elinde kart olmalı.");
+          return;
+        }
+        const pickOpp = pickCardFromHand(opp, "Rakibin elinden almak istediğin kartı seç:");
+        if (!pickOpp) {
+          showNotice("Kart seçilmedi.");
+          return;
+        }
+        const spellIdx = player.hand.findIndex(c => c.instanceId === card.instanceId);
+        if (spellIdx !== -1) {
+          [card] = player.hand.splice(spellIdx, 1);
+          player.graveyard.push(card);
+        }
+        if (!isOnline) {
+          const pickMine = pickCardFromHand(player, "Rakibin senin elinden alacağı kartı seç:");
+          if (!pickMine) {
+            showNotice("Kart seçilmedi.");
+            player.hand.push(card);
+            return;
+          }
+          executeHandSwap(current, pickOpp.instanceId, pickMine.instanceId, card);
+          return;
+        }
+
+        pendingHandSwap = {
+          casterIndex: current,
+          casterPickId: pickOpp.instanceId,
+          oppPickId: null,
+          spellCard: card
+        };
+        setLastAction(`${card.name} kullanıldı, rakip seçim yapıyor.`);
+        sendWS({ type: "relay", payload: { kind: "handSwapRequest", casterIndex: current } });
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "swapFromOppHand") {
+        if (opp.hand.length === 0 || player.hand.length === 0) {
+          showNotice("Takas için iki oyuncunun da elinde kart olmalı.");
+          return;
+        }
+        const pickOpp = pickCardFromHand(opp, "Rakibin elinden almak istediğin kartı seç:");
+        if (!pickOpp) {
+          showNotice("Kart seçilmedi.");
+          return;
+        }
+        if (!isOnline) {
+          const pickMine = pickCardFromHand(player, "Rakibin senin elinden alacağı kartı seç:");
+          if (!pickMine) {
+            showNotice("Kart seçilmedi.");
+            return;
+          }
+          removeSpellFromField();
+          executeHandSwap(current, pickOpp.instanceId, pickMine.instanceId, card);
+          return;
+        }
+
+        pendingHandSwap = {
+          casterIndex: current,
+          casterPickId: pickOpp.instanceId,
+          oppPickId: null,
+          spellCard: card
+        };
+        removeSpellFromField();
+        setLastAction(`${card.name} gizli büyüsü açıldı, rakip seçim yapıyor.`);
+        sendWS({ type: "relay", payload: { kind: "handSwapRequest", casterIndex: current } });
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "refreshBothHands") {
+        let totalDrawn = [0, 0];
+        for (let p = 0; p < 2; p++) {
+          const pl = gameState.players[p];
+          const discardCount = pl.hand.length;
+          while (pl.hand.length > 0) {
+            const card = pl.hand.pop();
+            pl.graveyard.push(card);
+          }
+          for (let i = 0; i < discardCount; i++) {
+            if (pl.deck.length === 0 || pl.hand.length >= 8) break;
+            pl.hand.push(pl.deck.pop());
+            totalDrawn[p] += 1;
+          }
+        }
+        removeSpellFromHandByInstance(card.instanceId);
+        setLastAction(`${card.name} kullanıldı, eller yenilendi (Sen: ${totalDrawn[mySeat]} kart).`);
+        gameState.selectedAttacker = null;
+        gameState.selectedSpell = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "refreshBothHands") {
+        let totalDrawn = [0, 0];
+        for (let p = 0; p < 2; p++) {
+          const pl = gameState.players[p];
+          const discardCount = pl.hand.length;
+          while (pl.hand.length > 0) {
+            const card = pl.hand.pop();
+            pl.graveyard.push(card);
+          }
+          for (let i = 0; i < discardCount; i++) {
+            if (pl.deck.length === 0 || pl.hand.length >= 8) break;
+            pl.hand.push(pl.deck.pop());
+            totalDrawn[p] += 1;
+          }
+        }
+        removeSpellFromField();
+        setLastAction(`${card.name} gizli büyüsü açıldı, eller yenilendi (Sen: ${totalDrawn[mySeat]} kart).`);
+        gameState.selectedAttacker = null;
+        gameState.selectedSpell = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "reviveFromGraveyardFree") {
+        const emptySlot = player.fieldMonsters.findIndex(m => m === null);
+        if (emptySlot === -1) {
+          showNotice("Sahanda boş canavar slotu yok.");
+          return;
+        }
+        const pick = pickMonsterFromGraveyard(player);
+        if (!pick) {
+          showNotice("Mezardan döndürülecek canavar seçilmedi.");
+          return;
+        }
+        const [revived] = player.graveyard.splice(pick.index, 1);
+        revived.isFaceDown = false;
+        player.fieldMonsters[emptySlot] = revived;
+        removeSpellFromHandByInstance(card.instanceId);
+        setLastAction(`${card.name} kullanıldı, ${revived.name} mezardan sahaya döndü.`);
+        gameState.selectedAttacker = null;
+        gameState.selectedSpell = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "reviveFromGraveyardFree") {
+        const emptySlot = player.fieldMonsters.findIndex(m => m === null);
+        if (emptySlot === -1) {
+          showNotice("Sahanda boş canavar slotu yok.");
+          return;
+        }
+        const pick = pickMonsterFromGraveyard(player);
+        if (!pick) {
+          showNotice("Mezardan döndürülecek canavar seçilmedi.");
+          return;
+        }
+        const [revived] = player.graveyard.splice(pick.index, 1);
+        revived.isFaceDown = false;
+        player.fieldMonsters[emptySlot] = revived;
+        removeSpellFromField();
+        setLastAction(`${card.name} gizli büyüsü açıldı, ${revived.name} mezardan sahaya döndü.`);
+        gameState.selectedAttacker = null;
+        gameState.selectedSpell = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "swapMonsters") {
+        const hasOwn = player.fieldMonsters.some(m => m !== null);
+        const hasOpp = opp.fieldMonsters.some(m => m !== null);
+        if (!hasOwn || !hasOpp) {
+          showNotice("Canavar takası için iki sahada da en az 1 canavar olmalı.");
+          return;
+        }
+        gameState.selectedSpell = {
+          playerIndex: current,
+          spellInstanceId: card.instanceId,
+          mode: "swapMonsters",
+          location: "hand"
+        };
+        setLastAction(`${card.name} seçildi. Önce kendi, sonra rakip canavarı seç.`);
+        gameState.selectedAttacker = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "debuffOppMonster400") {
+        const oppHasMonster = opp.fieldMonsters.some(m => m !== null);
+        if (!oppHasMonster) {
+          showNotice("Rakibin sahasında canavar yok, bu büyüyü şu anda kullanamazsın.");
+          return;
+        }
+        gameState.selectedSpell = {
+          playerIndex: current,
+          spellInstanceId: card.instanceId,
+          mode: "debuffOppMonster",
+          location: "field",
+          fieldSlotIndex: slotIndex
+        };
+        setLastAction(`${card.name} gizli büyüsü açıldı. Güç düşürmek için rakip sahasındaki bir canavardaki "Bu Büyüyle Güç Azalt" butonuna tıkla.`);
+        gameState.selectedAttacker = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "lockOppDraw1") {
+        gameState.drawBlockedThisTurn[oppIndex] = true;
+        gameState.drawBlockNextTurn[oppIndex] = false;
+        removeSpellFromField();
+        setLastAction(`${card.name} gizli büyüsü açıldı, rakip sıradaki tur kart çekemez.`);
+        gameState.selectedAttacker = null;
+        gameState.selectedSpell = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "wipeOppIf3") {
+        const oppCount = opp.fieldMonsters.filter(m => m !== null).length;
+        if (oppCount < 3) {
+          showNotice("Rakibin sahasında en az 3 canavar olmalı.");
+          return;
+        }
+        for (let s = 0; s < opp.fieldMonsters.length; s++) {
+          const m = opp.fieldMonsters[s];
+          if (m) {
+            opp.graveyard.push(m);
+            opp.fieldMonsters[s] = null;
+            gameState.attackedThisTurn[oppIndex][s] = false;
+            onMonsterSentToGraveyard(oppIndex, m);
+          }
+        }
+        removeSpellFromField();
+        setLastAction(`${card.name} gizli büyüsü açıldı, rakibin sahasındaki tüm canavarlar yok edildi.`);
+        gameState.selectedAttacker = null;
+        gameState.selectedSpell = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "swapMonsters") {
+        const hasOwn = player.fieldMonsters.some(m => m !== null);
+        const hasOpp = opp.fieldMonsters.some(m => m !== null);
+        if (!hasOwn || !hasOpp) {
+          showNotice("Canavar takası için iki sahada da en az 1 canavar olmalı.");
+          return;
+        }
+        gameState.selectedSpell = {
+          playerIndex: current,
+          spellInstanceId: card.instanceId,
+          mode: "swapMonsters",
+          location: "field",
+          fieldSlotIndex: slotIndex
+        };
+        setLastAction(`${card.name} gizli büyüsü açıldı. Önce kendi, sonra rakip canavarı seç.`);
+        gameState.selectedAttacker = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "reviveFromGraveyard") {
+        const emptySlot = player.fieldMonsters.findIndex(m => m === null);
+        if (emptySlot === -1) {
+          showNotice("Sahanda boş canavar slotu yok.");
+          return;
+        }
+        if (player.life <= 800) {
+          showNotice("Bu büyü için yeterli canın yok (800 can gerekir).");
+          return;
+        }
+        const pick = pickMonsterFromGraveyard(player);
+        if (!pick) {
+          showNotice("Mezardan döndürülecek canavar seçilmedi.");
+          return;
+        }
+        const [revived] = player.graveyard.splice(pick.index, 1);
+        revived.isFaceDown = false;
+        player.fieldMonsters[emptySlot] = revived;
+        player.life -= 800;
+        removeSpellFromHandByInstance(card.instanceId);
+        setLastAction(`${card.name} kullanıldı, 800 can ödendi ve ${revived.name} mezardan sahaya döndü.`);
+        gameState.selectedAttacker = null;
+        gameState.selectedSpell = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "selectTop5Take1RestGY") {
+        if (player.hand.length >= 8) {
+          showNotice("Elin dolu (8 kart). Bu büyüyle kart alamazsın.");
+          return;
+        }
+        const pick = pickCardFromTopOfDeck(player, 5);
+        if (!pick) {
+          showNotice("Kart seçilmedi.");
+          return;
+        }
+        const start = player.deck.length - pick.cards.length;
+        const removed = player.deck.splice(start, pick.cards.length);
+        const chosen = removed.splice(pick.pickIndex, 1)[0];
+        player.hand.push(chosen);
+        player.graveyard.push(...removed);
+        removeSpellFromHandByInstance(card.instanceId);
+        setLastAction(`${card.name} kullanıldı, 5 karttan biri seçildi ve diğerleri mezara gitti.`);
+        gameState.selectedAttacker = null;
+        gameState.selectedSpell = null;
+        renderAndSync();
+        return;
+      }
+
+      showNotice("Bu büyü henüz uygulanmamış bir tür.");
+    }
+
+    // -------------------------
+    // Sahadaki gizli büyüyü açıp aktifleştirme
+    // -------------------------
+    function activateFaceDownSpell(playerIndex, slotIndex) {
+      if (gameState.gameOver) return;
+      if (!isGameStarted()) {
+        showNotice("Oyun başlamadı. Oyunu Başlat düğmesine tıklayın.");
+        return;
+      }
+      const player = gameState.players[playerIndex];
+      const card = player.fieldSpells[slotIndex];
+      if (!card || card.type !== "spell") return;
+      const isTrap = card.cardClass === "Tuzak Kartı";
+
+      if (isOnline && !isMyTurn() && !isTrap) {
+        showNotice("Sıra sende değil.");
+        return;
+      }
+
+      // Sadece sahibi açabilir; büyüler için kendi turu, tuzaklar için rakip turu dahil
+      if (playerIndex !== gameState.currentPlayerIndex && !isTrap) {
+        showNotice("Sadece kendi turunda kendi gizli büyülerini açabilirsin.");
+        return;
+      }
+
+      if (!card.isFaceDown) return;
+
+      const current = playerIndex;
+      const oppIndex = current === 0 ? 1 : 0;
+      const opp = gameState.players[oppIndex];
+
+      const oppLocksSpells = opp.fieldMonsters.some(
+        (m) => m && m.effect && m.effect.preventOpponentSpells
+      );
+      if (oppLocksSpells && !isTrap) {
+        showNotice("Rakibin sahasında büyü kullanımını engelleyen bir canavar var. Büyü açamazsın.");
+        return;
+      }
+      const oppLocksTraps = opp.fieldMonsters.some(
+        (m) => m && m.effect && m.effect.preventOpponentTraps
+      );
+      if (oppLocksTraps && isTrap) {
+        showNotice("Rakibin sahasında tuzakları engelleyen bir canavar var. Tuzak açamazsın.");
+        return;
+      }
+
+      const kind = card.spellEffect && card.spellEffect.kind;
+      card.isFaceDown = false;
+
+      function removeSpellFromField() {
+        player.fieldSpells[slotIndex] = null;
+        player.graveyard.push(card);
+      }
+
+      if (!isTrap && tryNegateSpellOrTrap(current, card.name, removeSpellFromField)) {
+        return;
+      }
+
+      if (kind === "continuousBuffAllies200") {
+        setLastAction(`${card.name} gizli büyüsü açıldı. Etkisi aktif.`);
+        gameState.selectedAttacker = null;
+        gameState.selectedSpell = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "draw2") {
+        let drawn = 0;
+        for (let i = 0; i < 2; i++) {
+          if (player.deck.length > 0 && player.hand.length < 8) {
+            const c = player.deck.pop();
+            player.hand.push(c);
+            drawn++;
+          }
+        }
+        removeSpellFromField();
+        setLastAction(`${card.name} gizli büyüsü açıldı ve ${drawn} kart çekti.`);
+        gameState.selectedAttacker = null;
+        gameState.selectedSpell = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "destroyOppMonster") {
+        const oppHasMonster = opp.fieldMonsters.some(m => m !== null);
+        if (!oppHasMonster) {
+          showNotice("Rakibin sahasında canavar yok, bu büyüyü şu anda kullanamazsın.");
+          return;
+        }
+        gameState.selectedSpell = {
+          playerIndex: current,
+          spellInstanceId: card.instanceId,
+          mode: "destroyOppMonster",
+          location: "field",
+          fieldSlotIndex: slotIndex
+        };
+        setLastAction(`${card.name} gizli büyüsü açıldı. Yok etmek için rakip sahasındaki bir canavardaki "Bu Büyüyle Yok Et" butonuna tıkla.`);
+        gameState.selectedAttacker = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "discardOpp2") {
+        if (opp.hand.length === 0) {
+          showNotice("Rakibin elinde kart yok, bu büyüyü şu anda kullanamazsın.");
+          return;
+        }
+        let count = Math.min(2, opp.hand.length);
+        for (let i = 0; i < count; i++) {
+          const r = Math.floor(Math.random() * opp.hand.length);
+          const [discarded] = opp.hand.splice(r, 1);
+          opp.graveyard.push(discarded);
+        }
+        removeSpellFromField();
+        setLastAction(`${card.name} gizli büyüsü açıldı, rakibin elinden ${count} kart mezarlığa gönderildi.`);
+        gameState.selectedAttacker = null;
+        gameState.selectedSpell = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "heal500") {
+        player.life += 500;
+        removeSpellFromField();
+        setLastAction(`${card.name} gizli büyüsü açıldı ve 500 can kazandı.`);
+        gameState.selectedAttacker = null;
+        gameState.selectedSpell = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "boardWipe") {
+        for (let pIndex = 0; pIndex < 2; pIndex++) {
+          const pl = gameState.players[pIndex];
+          for (let s = 0; s < pl.fieldMonsters.length; s++) {
+            const m = pl.fieldMonsters[s];
+            if (m) {
+              pl.graveyard.push(m);
+              pl.fieldMonsters[s] = null;
+              gameState.attackedThisTurn[pIndex][s] = false;
+              onMonsterSentToGraveyard(pIndex, m);
+            }
+          }
+        }
+        gameState.selectedAttacker = null;
+        gameState.selectedSpell = null;
+        removeSpellFromField();
+        setLastAction(`${card.name} gizli büyüsü açıldı, sahadaki tüm canavarlar yok edildi.`);
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "steal1") {
+        if (opp.hand.length === 0) {
+          showNotice("Rakibin elinde kart yok, bu büyüyü şu anda kullanamazsın.");
+          return;
+        }
+        if (player.hand.length >= 8) {
+          showNotice("Elin dolu (8 kart). Bu büyüyle kart çalamazsın.");
+          return;
+        }
+        const r = Math.floor(Math.random() * opp.hand.length);
+        const [stolen] = opp.hand.splice(r, 1);
+        player.hand.push(stolen);
+        removeSpellFromField();
+        setLastAction(`${card.name} gizli büyüsü açıldı ve rakibin elinden bir kart çaldı.`);
+        gameState.selectedAttacker = null;
+        gameState.selectedSpell = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "peace2Turns") {
+        gameState.peaceTurnsRemaining = Math.max(gameState.peaceTurnsRemaining, 2);
+        removeSpellFromField();
+        setLastAction(`${card.name} gizli büyüsü açıldı, sonraki 2 oyuncu turu boyunca saldırı yapılamaz.`);
+        gameState.selectedAttacker = null;
+        gameState.selectedSpell = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "destroyOppHiddenSpells") {
+        let destroyed = 0;
+        for (let i = 0; i < opp.fieldSpells.length; i++) {
+          const s = opp.fieldSpells[i];
+          if (s && s.isFaceDown) {
+            opp.graveyard.push(s);
+            opp.fieldSpells[i] = null;
+            destroyed++;
+          }
+        }
+        removeSpellFromField();
+        setLastAction(`${card.name} gizli büyüsü açıldı, rakibin ${destroyed} gizli büyü/tuzak kartı mezarlığa gönderildi.`);
+        gameState.selectedAttacker = null;
+        gameState.selectedSpell = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "buffOwnMonster400") {
+        const hasMonster = player.fieldMonsters.some(m => m !== null);
+        if (!hasMonster) {
+          showNotice("Sahanda canavar yok, bu büyüyü şu anda kullanamazsın.");
+          return;
+        }
+        gameState.selectedSpell = {
+          playerIndex: current,
+          spellInstanceId: card.instanceId,
+          mode: "buffOwnMonster",
+          location: "field",
+          fieldSlotIndex: slotIndex
+        };
+        setLastAction(`${card.name} gizli büyüsü açıldı. Güç vermek için kendi sahandaki bir canavardaki "Bu Büyüyle Güçlendir" butonuna tıkla.`);
+        gameState.selectedAttacker = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "reviveFromGraveyard") {
+        const emptySlot = player.fieldMonsters.findIndex(m => m === null);
+        if (emptySlot === -1) {
+          showNotice("Sahanda boş canavar slotu yok.");
+          return;
+        }
+        if (player.life <= 800) {
+          showNotice("Bu büyü için yeterli canın yok (800 can gerekir).");
+          return;
+        }
+        const pick = pickMonsterFromGraveyard(player);
+        if (!pick) {
+          showNotice("Mezardan döndürülecek canavar seçilmedi.");
+          return;
+        }
+        const [revived] = player.graveyard.splice(pick.index, 1);
+        revived.isFaceDown = false;
+        player.fieldMonsters[emptySlot] = revived;
+        player.life -= 800;
+        removeSpellFromField();
+        setLastAction(`${card.name} gizli büyüsü açıldı, 800 can ödendi ve ${revived.name} mezardan sahaya döndü.`);
+        gameState.selectedAttacker = null;
+        gameState.selectedSpell = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "selectTop5Take1RestGY") {
+        if (player.hand.length >= 8) {
+          showNotice("Elin dolu (8 kart). Bu büyüyle kart alamazsın.");
+          return;
+        }
+        const pick = pickCardFromTopOfDeck(player, 5);
+        if (!pick) {
+          showNotice("Kart seçilmedi.");
+          return;
+        }
+        const start = player.deck.length - pick.cards.length;
+        const removed = player.deck.splice(start, pick.cards.length);
+        const chosen = removed.splice(pick.pickIndex, 1)[0];
+        player.hand.push(chosen);
+        player.graveyard.push(...removed);
+        removeSpellFromField();
+        setLastAction(`${card.name} gizli büyüsü açıldı, 5 karttan biri seçildi ve diğerleri mezara gitti.`);
+        gameState.selectedAttacker = null;
+        gameState.selectedSpell = null;
+        renderAndSync();
+        return;
+      }
+
+      if (kind === "trapNegateDirect") {
+        // Bu tuzak manual açılışta bir saldırıyı hedef almazsa anlamlı değil
+        showNotice("Bu tuzak sadece doğrudan saldırı sırasında otomatik açılır.");
+        return;
+      }
+
+      if (kind === "trapDestroyAttacker") {
+        showNotice("Bu tuzak sadece canavar saldırısı sırasında otomatik açılır.");
+        return;
+      }
+
+      if (kind === "trapNegateSpell") {
+        showNotice("Bu tuzak rakibin büyü veya tuzak kartı kullandığı anda otomatik açılır.");
+        return;
+      }
+
+      if (kind === "trapStealAttacker") {
+        showNotice("Bu tuzak sadece canavar saldırısı sırasında otomatik açılır.");
+        return;
+      }
+
+      showNotice("Bu büyü henüz uygulanmamış bir tür.");
+    }
+
+    // -------------------------
+    // Hedefli büyünün uygulanması (el veya sahadan)
+    // -------------------------
+    function applySpellToMonster(defPlayerIndex, defSlotIndex) {
+      if (gameState.gameOver) return;
+      if (!isGameStarted()) {
+        showNotice("Oyun başlamadı. Oyunu Başlat düğmesine tıklayın.");
+        return;
+      }
+      if (isOnline && !isMyTurn()) {
+        showNotice("Sıra sende değil.");
+        return;
+      }
+
+      const selSpell = gameState.selectedSpell;
+      if (!selSpell) {
+        showNotice("Aktif bir hedefli büyü seçili değil.");
+        return;
+      }
+
+      const casterIndex = selSpell.playerIndex;
+      const caster = gameState.players[casterIndex];
+
+      if (casterIndex !== gameState.currentPlayerIndex) {
+        showNotice("Bu büyüyü sadece sırası gelen oyuncu kullanabilir.");
+        return;
+      }
+
+      if (selSpell.mode === "buffOwnMonster") {
+        if (defPlayerIndex !== casterIndex) {
+          showNotice("Bu büyü sadece kendi canavarına uygulanabilir.");
+          return;
+        }
+
+        const defPlayer = gameState.players[defPlayerIndex];
+        const monster = defPlayer.fieldMonsters[defSlotIndex];
+        if (!monster) {
+          showNotice("Bu slotta canavar yok.");
+          return;
+        }
+
+        let spellCard;
+        if (selSpell.location === "field") {
+          const fieldCard = caster.fieldSpells[selSpell.fieldSlotIndex];
+          if (!fieldCard || fieldCard.instanceId !== selSpell.spellInstanceId) {
+            showNotice("Büyü kartı sahada bulunamadı.");
+            gameState.selectedSpell = null;
+            renderAndSync();
+            return;
+          }
+          spellCard = fieldCard;
+          caster.fieldSpells[selSpell.fieldSlotIndex] = null;
+        } else {
+          const spellIdx = caster.hand.findIndex(
+            c => c.instanceId === selSpell.spellInstanceId
+          );
+          if (spellIdx === -1) {
+            showNotice("Büyü kartı artık elinde değil.");
+            gameState.selectedSpell = null;
+            renderAndSync();
+            return;
+          }
+          [spellCard] = caster.hand.splice(spellIdx, 1);
+        }
+
+        caster.graveyard.push(spellCard);
+        monster.basePower += 400;
+
+        setLastAction(`${spellCard.name} kullanıldı, ${monster.name} kalıcı +400 güç kazandı.`);
+        gameState.selectedSpell = null;
+        renderAndSync();
+        return;
+      }
+
+      if (selSpell.mode === "debuffOppMonster") {
+        const oppIndexExpected = casterIndex === 0 ? 1 : 0;
+        if (defPlayerIndex !== oppIndexExpected) {
+          showNotice("Bu büyü sadece rakip canavarına uygulanabilir.");
+          return;
+        }
+
+        const defPlayer = gameState.players[defPlayerIndex];
+        const monster = defPlayer.fieldMonsters[defSlotIndex];
+        if (!monster) {
+          showNotice("Bu slotta canavar yok.");
+          return;
+        }
+
+        let spellCard;
+        if (selSpell.location === "field") {
+          const fieldCard = caster.fieldSpells[selSpell.fieldSlotIndex];
+          if (!fieldCard || fieldCard.instanceId !== selSpell.spellInstanceId) {
+            showNotice("Büyü kartı sahada bulunamadı.");
+            gameState.selectedSpell = null;
+            renderAndSync();
+            return;
+          }
+          spellCard = fieldCard;
+          caster.fieldSpells[selSpell.fieldSlotIndex] = null;
+        } else {
+          const spellIdx = caster.hand.findIndex(
+            c => c.instanceId === selSpell.spellInstanceId
+          );
+          if (spellIdx === -1) {
+            showNotice("Büyü kartı artık elinde değil.");
+            gameState.selectedSpell = null;
+            renderAndSync();
+            return;
+          }
+          [spellCard] = caster.hand.splice(spellIdx, 1);
+        }
+
+        caster.graveyard.push(spellCard);
+        monster.basePower -= 400;
+
+        setLastAction(`${spellCard.name} kullanıldı, ${monster.name} 400 güç kaybetti.`);
+        gameState.selectedSpell = null;
+        renderAndSync();
+        return;
+      }
+
+      if (selSpell.mode === "lockOppMonsterAttack") {
+        const oppIndexExpected = casterIndex === 0 ? 1 : 0;
+        if (defPlayerIndex !== oppIndexExpected) {
+          showNotice("Bu büyü sadece rakip canavarına uygulanabilir.");
+          return;
+        }
+
+        const defPlayer = gameState.players[defPlayerIndex];
+        const monster = defPlayer.fieldMonsters[defSlotIndex];
+        if (!monster) {
+          showNotice("Bu slotta canavar yok.");
+          return;
+        }
+
+        let spellCard;
+        if (selSpell.location === "field") {
+          const fieldCard = caster.fieldSpells[selSpell.fieldSlotIndex];
+          if (!fieldCard || fieldCard.instanceId !== selSpell.spellInstanceId) {
+            showNotice("Büyü kartı sahada bulunamadı.");
+            gameState.selectedSpell = null;
+            renderAndSync();
+            return;
+          }
+          spellCard = fieldCard;
+          caster.fieldSpells[selSpell.fieldSlotIndex] = null;
+        } else {
+          const spellIdx = caster.hand.findIndex(
+            c => c.instanceId === selSpell.spellInstanceId
+          );
+          if (spellIdx === -1) {
+            showNotice("Büyü kartı artık elinde değil.");
+            gameState.selectedSpell = null;
+            renderAndSync();
+            return;
+          }
+          [spellCard] = caster.hand.splice(spellIdx, 1);
+        }
+
+        caster.graveyard.push(spellCard);
+        monster.attackLockTurns = 2;
+
+        setLastAction(`${spellCard.name} kullanıldı, ${monster.name} 2 tur saldıramaz.`);
+        gameState.selectedSpell = null;
+        renderAndSync();
+        return;
+      }
+
+      if (selSpell.mode === "returnOwnMonsterToHand") {
+        if (defPlayerIndex !== casterIndex) {
+          showNotice("Bu büyü sadece kendi canavarına uygulanabilir.");
+          return;
+        }
+
+        const defPlayer = gameState.players[defPlayerIndex];
+        const monster = defPlayer.fieldMonsters[defSlotIndex];
+        if (!monster) {
+          showNotice("Bu slotta canavar yok.");
+          return;
+        }
+        if (defPlayer.hand.length >= 8) {
+          showNotice("Elin dolu (8 kart). Bu büyüyle canavar geri alamazsın.");
+          return;
+        }
+
+        let spellCard;
+        if (selSpell.location === "field") {
+          const fieldCard = caster.fieldSpells[selSpell.fieldSlotIndex];
+          if (!fieldCard || fieldCard.instanceId !== selSpell.spellInstanceId) {
+            showNotice("Büyü kartı sahada bulunamadı.");
+            gameState.selectedSpell = null;
+            renderAndSync();
+            return;
+          }
+          spellCard = fieldCard;
+          caster.fieldSpells[selSpell.fieldSlotIndex] = null;
+        } else {
+          const spellIdx = caster.hand.findIndex(
+            c => c.instanceId === selSpell.spellInstanceId
+          );
+          if (spellIdx === -1) {
+            showNotice("Büyü kartı artık elinde değil.");
+            gameState.selectedSpell = null;
+            renderAndSync();
+            return;
+          }
+          [spellCard] = caster.hand.splice(spellIdx, 1);
+        }
+
+        defPlayer.fieldMonsters[defSlotIndex] = null;
+        monster.isFaceDown = false;
+        defPlayer.hand.push(monster);
+        caster.graveyard.push(spellCard);
+
+        setLastAction(`${spellCard.name} kullanıldı, ${monster.name} eline geri döndü.`);
+        gameState.selectedSpell = null;
+        renderAndSync();
+        return;
+      }
+
+      if (selSpell.mode !== "destroyOppMonster") {
+        showNotice("Bu fonksiyon sadece hedefli büyüler için.");
+        return;
+      }
+
+      const oppIndexExpected = casterIndex === 0 ? 1 : 0;
+      if (defPlayerIndex !== oppIndexExpected) {
+        showNotice("Bu büyü sadece rakip canavarına uygulanabilir.");
+        return;
+      }
+
+      const defPlayer = gameState.players[defPlayerIndex];
+      const monster = defPlayer.fieldMonsters[defSlotIndex];
+      if (!monster) {
+        showNotice("Bu slotta canavar yok.");
+        return;
+      }
+
+      let spellCard;
+      if (selSpell.location === "field") {
+        const fieldCard = caster.fieldSpells[selSpell.fieldSlotIndex];
+        if (!fieldCard || fieldCard.instanceId !== selSpell.spellInstanceId) {
+          showNotice("Büyü kartı sahada bulunamadı.");
+          gameState.selectedSpell = null;
+          renderAndSync();
+          return;
+        }
+        spellCard = fieldCard;
+        caster.fieldSpells[selSpell.fieldSlotIndex] = null;
+      } else {
+        const spellIdx = caster.hand.findIndex(
+          c => c.instanceId === selSpell.spellInstanceId
+        );
+        if (spellIdx === -1) {
+          showNotice("Büyü kartı artık elinde değil.");
+          gameState.selectedSpell = null;
+          renderAndSync();
+          return;
+        }
+        [spellCard] = caster.hand.splice(spellIdx, 1);
+      }
+
+      caster.graveyard.push(spellCard);
+
+      defPlayer.graveyard.push(monster);
+      defPlayer.fieldMonsters[defSlotIndex] = null;
+      onMonsterSentToGraveyard(defPlayerIndex, monster);
+
+      setLastAction(`${spellCard.name} kullanıldı, ${monster.name} yok edildi.`);
+      gameState.selectedSpell = null;
+      renderAndSync();
+    }
+
+    // -------------------------
+    // Gizli canavarı açma (saldırıdan önce)
+    // -------------------------
+    function revealMonster(playerIndex, slotIndex) {
+      if (gameState.gameOver) return;
+      if (!isGameStarted()) {
+        showNotice("Oyun başlamadı. Oyunu Başlat düğmesine tıklayın.");
+        return;
+      }
+      if (isOnline && !isMyTurn()) {
+        showNotice("Sıra sende değil.");
+        return;
+      }
+      if (playerIndex !== gameState.currentPlayerIndex) {
+        showNotice("Sadece sırası gelen oyuncu kendi gizli kartlarını açabilir.");
+        return;
+      }
+      const player = gameState.players[playerIndex];
+      const monster = player.fieldMonsters[slotIndex];
+      if (!monster || !monster.isFaceDown) return;
+
+      monster.isFaceDown = false;
+      setLastAction(`${monster.name} gizli durumdan açıldı.`);
+      renderAndSync();
+    }
+
+    // -------------------------
+    // Saldırı Mekanikleri
+    // -------------------------
+    function selectAttacker(slotIndex) {
+      if (gameState.gameOver) return;
+      if (!isGameStarted()) {
+        showNotice("Oyun başlamadı. Oyunu Başlat düğmesine tıklayın.");
+        return;
+      }
+      if (isOnline && !isMyTurn()) {
+        showNotice("Sıra sende değil.");
+        return;
+      }
+
+      const current = gameState.currentPlayerIndex;
+      const player = gameState.players[current];
+      const monster = player.fieldMonsters[slotIndex];
+      if (!monster) return;
+      if (monster.attackLockTurns > 0) {
+        showNotice("Bu canavarın saldırısı kilitli.");
+        return;
+      }
+      if (monster.effect && monster.effect.cannotAttack) {
+        showNotice("Bu canavar saldırıda kullanılamaz.");
+        return;
+      }
+
+      if (gameState.peaceTurnsRemaining > 0) {
+        showNotice("Barış Sözleşmesi aktif, şu anda saldırı yapılamaz.");
+        return;
+      }
+
+      if (!canPlayerAttackThisTurn(current)) {
+        showNotice("Bu oyuncu ilk turunda, saldırı ikinci turdan itibaren serbest.");
+        return;
+      }
+
+      if (gameState.attackedThisTurn[current][slotIndex]) {
+        showNotice("Bu canavar bu tur zaten saldırdı.");
+        return;
+      }
+
+      if (monster.isFaceDown) {
+        showNotice("Bu canavar gizli. Önce 'Kartı Aç' butonu ile açmalısın.");
+        return;
+      }
+
+      setLastAction(`${monster.name} saldırı için seçildi. Hedef seç.`);
+      gameState.selectedAttacker = { playerIndex: current, slotIndex };
+      renderAndSync();
+    }
+
+    function attackMonster(defPlayerIndex, defSlotIndex) {
+      if (gameState.gameOver) return;
+      if (!isGameStarted()) {
+        showNotice("Oyun başlamadı. Oyunu Başlat düğmesine tıklayın.");
+        return;
+      }
+      if (isOnline && !isMyTurn()) {
+        showNotice("Sıra sende değil.");
+        return;
+      }
+
+      const sel = gameState.selectedAttacker;
+      if (!sel) {
+        showNotice("Önce saldıracak canavarı seç.");
+        return;
+      }
+      const atkPlayerIndex = sel.playerIndex;
+
+      if (gameState.peaceTurnsRemaining > 0) {
+        showNotice("Barış Sözleşmesi aktif, şu anda saldırı yapılamaz.");
+        return;
+      }
+
+      if (!canPlayerAttackThisTurn(atkPlayerIndex)) {
+        showNotice("Bu oyuncu ilk turunda, saldırı ikinci turdan itibaren serbest.");
+        return;
+      }
+
+      if (atkPlayerIndex !== gameState.currentPlayerIndex) {
+        showNotice("Saldırı sadece sırası gelen oyuncu tarafından yapılabilir.");
+        return;
+      }
+      const defIndexShouldBe = atkPlayerIndex === 0 ? 1 : 0;
+      if (defPlayerIndex !== defIndexShouldBe) {
+        showNotice("Yanlış hedef oyuncu.");
+        return;
+      }
+
+      const atkPlayer = gameState.players[atkPlayerIndex];
+      const defPlayer = gameState.players[defPlayerIndex];
+
+      const attacker = atkPlayer.fieldMonsters[sel.slotIndex];
+      const defender = defPlayer.fieldMonsters[defSlotIndex];
+
+      if (!attacker) {
+        showNotice("Saldıran canavar artık sahada değil.");
+        gameState.selectedAttacker = null;
+        renderAndSync();
+        return;
+      }
+      if (attacker.attackLockTurns > 0) {
+        showNotice("Bu canavarın saldırısı kilitli.");
+        gameState.selectedAttacker = null;
+        renderAndSync();
+        return;
+      }
+      if (attacker.effect && attacker.effect.cannotAttack) {
+        showNotice("Bu canavar saldırıda kullanılamaz.");
+        gameState.selectedAttacker = null;
+        renderAndSync();
+        return;
+      }
+      if (attacker.effect && attacker.effect.cannotAttack) {
+        showNotice("Bu canavar saldırıda kullanılamaz.");
+        gameState.selectedAttacker = null;
+        renderAndSync();
+        return;
+      }
+      if (!defender) {
+        showNotice("Bu slotta savunan canavar yok.");
+        renderAndSync();
+        return;
+      }
+
+      if (gameState.attackedThisTurn[atkPlayerIndex][sel.slotIndex]) {
+        showNotice("Bu canavar bu tur zaten saldırdı.");
+        return;
+      }
+
+      // Defans oyuncusunun tuzağı (saldırıya cevap)
+      const atkLocksTraps = atkPlayer.fieldMonsters.some(
+        (m) => m && m.effect && m.effect.preventOpponentTraps
+      );
+      if (atkLocksTraps) {
+        // Rakibin tuzakları aktif hale gelemez
+      } else {
+      const defStealTrapIdx = defPlayer.fieldSpells.findIndex(
+        (s) => s && s.isFaceDown && s.cardClass === "Tuzak Kartı" && s.spellEffect && s.spellEffect.kind === "trapStealAttacker"
+      );
+      if (defStealTrapIdx !== -1) {
+        if (tryNegateTrapDuringAttack(atkPlayerIndex, defPlayerIndex, defStealTrapIdx)) {
+          renderAndSync();
+        } else {
+          const trap = defPlayer.fieldSpells[defStealTrapIdx];
+          defPlayer.fieldSpells[defStealTrapIdx] = null;
+          defPlayer.graveyard.push(trap);
+
+          const emptySlot = defPlayer.fieldMonsters.findIndex((m) => m === null);
+          if (emptySlot === -1) {
+            setLastAction(`${trap.name} tuzağı açıldı, saldırı iptal edildi ama sahanda boş slot yok.`, defPlayerIndex);
+            gameState.selectedAttacker = null;
+            renderAndSync();
+            return;
+          }
+
+          atkPlayer.fieldMonsters[sel.slotIndex] = null;
+          gameState.attackedThisTurn[atkPlayerIndex][sel.slotIndex] = false;
+          attacker.isFaceDown = false;
+          defPlayer.fieldMonsters[emptySlot] = attacker;
+
+          setLastAction(`${trap.name} tuzağı açıldı, saldırı iptal edildi ve ${attacker.name} senin sahana geçti.`, defPlayerIndex);
+          gameState.selectedAttacker = null;
+          renderAndSync();
+          return;
+        }
+      }
+
+      const defTrapIdx = defPlayer.fieldSpells.findIndex(
+        (s) => s && s.isFaceDown && s.cardClass === "Tuzak Kartı" && s.spellEffect && s.spellEffect.kind === "trapDestroyAttacker"
+      );
+      if (defTrapIdx !== -1) {
+        if (tryNegateTrapDuringAttack(atkPlayerIndex, defPlayerIndex, defTrapIdx)) {
+          renderAndSync();
+        } else {
+        const trap = defPlayer.fieldSpells[defTrapIdx];
+        defPlayer.fieldSpells[defTrapIdx] = null;
+        defPlayer.graveyard.push(trap);
+
+        atkPlayer.graveyard.push(attacker);
+        atkPlayer.fieldMonsters[sel.slotIndex] = null;
+        gameState.attackedThisTurn[atkPlayerIndex][sel.slotIndex] = false;
+        onMonsterSentToGraveyard(atkPlayerIndex, attacker);
+
+        setLastAction(`${trap.name} tuzağı açıldı, saldırı iptal edildi ve saldıran canavar mezara gitti.`, defPlayerIndex);
+        gameState.selectedAttacker = null;
+        renderAndSync();
+        return;
+        }
+      }
+      }
+
+      if (defender.isFaceDown && defender.effect && defender.effect.onFaceDownAttackedDestroyAttacker) {
+        atkPlayer.graveyard.push(attacker);
+        atkPlayer.fieldMonsters[sel.slotIndex] = null;
+        gameState.attackedThisTurn[atkPlayerIndex][sel.slotIndex] = true;
+        gameState.selectedAttacker = null;
+        onMonsterSentToGraveyard(atkPlayerIndex, attacker, "effect");
+        setLastAction(`${defender.name} gizli etkisiyle ${attacker.name} mezara gitti.`, defPlayerIndex);
+        renderAndSync();
+        return;
+      }
+
+      // Gizli savunan canavar saldırı anında açılır
+      if (defender.isFaceDown) {
+        defender.isFaceDown = false;
+      }
+
+      const atkPower = getEffectivePower(atkPlayerIndex, sel.slotIndex);
+      const defPower = getEffectivePower(defPlayerIndex, defSlotIndex);
+
+      let log = "";
+
+      if (atkPower > defPower) {
+        defPlayer.graveyard.push(defender);
+        defPlayer.fieldMonsters[defSlotIndex] = null;
+        let damage = atkPower - defPower;
+        if (defender.effect && defender.effect.onBattleDeathHealOwner) {
+          damage = 0;
+          defPlayer.life += defender.effect.onBattleDeathHealOwner;
+        }
+        defPlayer.life = Math.max(0, defPlayer.life - damage);
+        log = `${attacker.name} (${atkPower}), ${defender.name} (${defPower}) canavarını yok etti ve rakibe ${damage} hasar verdi.`;
+        if (defender.effect && defender.effect.onBattleDeathHealOwner) {
+          log += ` ${defender.name} öldüğü için ${defender.effect.onBattleDeathHealOwner} can kazandırdı.`;
+        }
+        if (defender.effect && defender.effect.onDeathDebuffKiller) {
+          attacker.basePower = Math.max(0, attacker.basePower - defender.effect.onDeathDebuffKiller);
+          log += ` ${defender.name} etkisiyle ${attacker.name} ${defender.effect.onDeathDebuffKiller} güç kaybetti.`;
+        }
+
+        if (attacker.effect && attacker.effect.onKillGainPower) {
+          attacker.basePower += attacker.effect.onKillGainPower;
+          log += ` ${attacker.name} zaferden güç alır ve kalıcı +${attacker.effect.onKillGainPower} güç kazanır (yeni temel güç: ${attacker.basePower}).`;
+        }
+
+        onMonsterSentToGraveyard(defPlayerIndex, defender, "battle");
+
+      } else if (atkPower < defPower) {
+        atkPlayer.graveyard.push(attacker);
+        atkPlayer.fieldMonsters[sel.slotIndex] = null;
+        let damage = defPower - atkPower;
+        if (attacker.effect && attacker.effect.onBattleDeathHealOwner) {
+          damage = 0;
+          atkPlayer.life += attacker.effect.onBattleDeathHealOwner;
+        }
+        atkPlayer.life = Math.max(0, atkPlayer.life - damage);
+        log = `${attacker.name} (${atkPower}), ${defender.name} (${defPower}) tarafından yok edildi ve saldıran oyuncu ${damage} hasar aldı.`;
+        if (attacker.effect && attacker.effect.onBattleDeathHealOwner) {
+          log += ` ${attacker.name} öldüğü için ${attacker.effect.onBattleDeathHealOwner} can kazandırdı.`;
+        }
+        if (attacker.effect && attacker.effect.onDeathDebuffKiller) {
+          defender.basePower = Math.max(0, defender.basePower - attacker.effect.onDeathDebuffKiller);
+          log += ` ${attacker.name} etkisiyle ${defender.name} ${attacker.effect.onDeathDebuffKiller} güç kaybetti.`;
+        }
+
+        onMonsterSentToGraveyard(atkPlayerIndex, attacker, "battle");
+
+      } else {
+        atkPlayer.graveyard.push(attacker);
+        defPlayer.graveyard.push(defender);
+        atkPlayer.fieldMonsters[sel.slotIndex] = null;
+        defPlayer.fieldMonsters[defSlotIndex] = null;
+        log = `${attacker.name} ve ${defender.name} birbirini yok etti.`;
+
+        onMonsterSentToGraveyard(atkPlayerIndex, attacker, "battle");
+        onMonsterSentToGraveyard(defPlayerIndex, defender, "battle");
+      }
+
+      gameState.attackedThisTurn[atkPlayerIndex][sel.slotIndex] = true;
+      gameState.selectedAttacker = null;
+      setLastAction(log);
+
+      checkGameOver();
+      renderAndSync();
+    }
+
+    function directAttack() {
+      if (gameState.gameOver) return;
+      if (!isGameStarted()) {
+        showNotice("Oyun başlamadı. Oyunu Başlat düğmesine tıklayın.");
+        return;
+      }
+      if (isOnline && !isMyTurn()) {
+        showNotice("Sıra sende değil.");
+        return;
+      }
+
+      const sel = gameState.selectedAttacker;
+      if (!sel) {
+        showNotice("Önce saldıracak canavarı seç.");
+        return;
+      }
+      const atkPlayerIndex = sel.playerIndex;
+
+      if (gameState.peaceTurnsRemaining > 0) {
+        showNotice("Barış Sözleşmesi aktif, şu anda saldırı yapılamaz.");
+        return;
+      }
+
+      if (!canPlayerAttackThisTurn(atkPlayerIndex)) {
+        showNotice("Bu oyuncu ilk turunda, saldırı ikinci turdan itibaren serbest.");
+        return;
+      }
+
+      if (atkPlayerIndex !== gameState.currentPlayerIndex) {
+        showNotice("Saldırı sadece sırası gelen oyuncu tarafından yapılabilir.");
+        return;
+      }
+
+      const atkPlayer = gameState.players[atkPlayerIndex];
+      const defPlayerIndex = atkPlayerIndex === 0 ? 1 : 0;
+      const defPlayer = gameState.players[defPlayerIndex];
+
+      if (!canDirectAttackOnOpponent(atkPlayerIndex)) {
+        showNotice("Bu tur rakibe direkt saldırı hakkın yok.");
+        return;
+      }
+
+      const attacker = atkPlayer.fieldMonsters[sel.slotIndex];
+      if (!attacker) {
+        showNotice("Saldıran canavar artık sahada değil.");
+        gameState.selectedAttacker = null;
+        renderAndSync();
+        return;
+      }
+      if (attacker.attackLockTurns > 0) {
+        showNotice("Bu canavarın saldırısı kilitli.");
+        gameState.selectedAttacker = null;
+        renderAndSync();
+        return;
+      }
+
+      const defTrapIndex = defPlayer.fieldSpells.findIndex(
+        (s) => s && s.isFaceDown && s.cardClass === "Tuzak Kartı" && s.spellEffect && s.spellEffect.kind === "trapNegateDirect"
+      );
+      const atkLocksTraps = atkPlayer.fieldMonsters.some(
+        (m) => m && m.effect && m.effect.preventOpponentTraps
+      );
+      if (defTrapIndex !== -1 && !atkLocksTraps) {
+        if (tryNegateTrapDuringAttack(atkPlayerIndex, defPlayerIndex, defTrapIndex)) {
+          renderAndSync();
+        } else {
+        const trap = defPlayer.fieldSpells[defTrapIndex];
+        defPlayer.fieldSpells[defTrapIndex] = null;
+        defPlayer.graveyard.push(trap);
+        if (gameState.attackLockedThisTurn) {
+          gameState.attackLockedThisTurn[atkPlayerIndex] = true;
+        }
+        setLastAction(`${trap.name} tuzağı açıldı ve doğrudan saldırı iptal edildi.`, defPlayerIndex);
+        gameState.selectedAttacker = null;
+        renderAndSync();
+        return;
+        }
+      }
+
+      if (gameState.attackedThisTurn[atkPlayerIndex][sel.slotIndex]) {
+        showNotice("Bu canavar bu tur zaten saldırdı.");
+        return;
+      }
+
+      const atkPower = getEffectivePower(atkPlayerIndex, sel.slotIndex);
+      const directDamage = Math.floor(atkPower / 2);
+      defPlayer.life = Math.max(0, defPlayer.life - directDamage);
+
+      const log = `${attacker.name}, rakibe direkt saldırdı ve ${directDamage} hasar verdi.`;
+      gameState.attackedThisTurn[atkPlayerIndex][sel.slotIndex] = true;
+      gameState.selectedAttacker = null;
+      setLastAction(log);
+
+      checkGameOver();
+      renderAndSync();
+    }
+
+    // -------------------------
+    // Kart Çekme / Tur Bitirme
+    // -------------------------
+    function drawCard() {
+      if (gameState.gameOver) return;
+      if (!isGameStarted()) {
+        showNotice("Oyun başlamadı. Oyunu Başlat düğmesine tıklayın.");
+        return;
+      }
+      if (isOnline && !isMyTurn()) {
+        showNotice("Sıra sende değil.");
+        return;
+      }
+
+      const current = gameState.currentPlayerIndex;
+      const player = gameState.players[current];
+
+      if (gameState.hasDrawnThisTurn) {
+        showNotice("Bu tur zaten kart çektin.");
+        return;
+      }
+      if (gameState.drawBlockedThisTurn && gameState.drawBlockedThisTurn[current]) {
+        showNotice("Bu tur kart çekemezsin.");
+        return;
+      }
+      if (player.deck.length === 0) {
+        showNotice("Deste boş, kart çekemezsin.");
+        return;
+      }
+      if (player.hand.length >= 8) {
+        showNotice("Elinde çok fazla kart var (max 8).");
+        return;
+      }
+
+      const card = player.deck.pop();
+      player.hand.push(card);
+      gameState.hasDrawnThisTurn = true;
+      setLastAction(`bir kart çekti.`);
+      renderAndSync();
+    }
+
+    function endTurn(forced = false) {
+      if (gameState.gameOver) return;
+      if (!isGameStarted()) {
+        showNotice("Oyun başlamadı. Oyunu Başlat düğmesine tıklayın.");
+        return;
+      }
+      if (isOnline && !isMyTurn() && !forced) {
+        showNotice("Sıra sende değil.");
+        return;
+      }
+
+      const prevPlayer = gameState.currentPlayerIndex;
+      gameState.turnsTaken[prevPlayer] += 1;
+
+      gameState.currentPlayerIndex = prevPlayer === 0 ? 1 : 0;
+      const isNewGameTurn = gameState.currentPlayerIndex === 0;
+      if (isNewGameTurn) {
+        gameState.turnNumber += 1;
+      }
+      gameState.hasDrawnThisTurn = false;
+      gameState.selectedAttacker = null;
+      gameState.selectedSpell = null;
+      gameState.attackedThisTurn[gameState.currentPlayerIndex] = emptyAttackFlags();
+      if (gameState.attackLockedThisTurn) {
+        gameState.attackLockedThisTurn[gameState.currentPlayerIndex] = false;
+      }
+      if (gameState.coinFlipAttackLock) {
+        gameState.coinFlipAttackLock[gameState.currentPlayerIndex] = false;
+      }
+      if (isNewGameTurn) {
+        if (gameState.drawBlockedThisTurn) {
+          gameState.drawBlockedThisTurn = [false, false];
+        }
+        if (gameState.drawBlockNextTurn) {
+          for (let p = 0; p < gameState.drawBlockNextTurn.length; p++) {
+            if (gameState.drawBlockNextTurn[p]) {
+              gameState.drawBlockedThisTurn[p] = true;
+              gameState.drawBlockNextTurn[p] = false;
+            }
+          }
+        }
+        gameState.players.forEach((pl) => {
+          pl.fieldMonsters.forEach((m) => {
+            if (m && m.attackLockTurns > 0) {
+              m.attackLockTurns -= 1;
+            }
+          });
+        });
+        if (gameState.peaceTurnsRemaining > 0) {
+          gameState.peaceTurnsRemaining -= 1;
+        }
+      }
+
+      const currentPlayerState = gameState.players[gameState.currentPlayerIndex];
+      if (currentPlayerState.pendingReturnToHand && currentPlayerState.pendingReturnToHand.length) {
+        const remaining = [];
+        let returnedCount = 0;
+        currentPlayerState.pendingReturnToHand.forEach((instanceId) => {
+          if (currentPlayerState.hand.length >= 8) {
+            remaining.push(instanceId);
+            return;
+          }
+          const idx = currentPlayerState.graveyard.findIndex((c) => c.instanceId === instanceId);
+          if (idx === -1) return;
+          const [card] = currentPlayerState.graveyard.splice(idx, 1);
+          currentPlayerState.hand.push(card);
+          returnedCount += 1;
+        });
+        currentPlayerState.pendingReturnToHand = remaining;
+        if (returnedCount > 0) {
+          setLastAction("mezarlıktan eline geri dönen bir canavarı aldı.", gameState.currentPlayerIndex);
+        }
+      }
+
+      const prevPlayerState = gameState.players[prevPlayer];
+      prevPlayerState.maxLevelUnlocked = Math.min(
+        4,
+        Math.max(prevPlayerState.maxLevelUnlocked || 1, prevPlayerState.maxLevelPlayed + 1)
+      );
+
+      gameState.turnDeadline = Date.now() + 120000;
+      updateOpponentEmptyFlagForCurrentPlayer();
+      applyTurnStartEffects();
+
+      if (!gameState.gameOver && !gameState.lastAction) {
+        setLastAction("Tur değişti.");
+      }
+
+      renderAndSync();
+    }
+
+    function sendMonsterToGraveyard(playerIndex, slotIndex) {
+      if (gameState.gameOver) return;
+      if (!isGameStarted()) {
+        showNotice("Oyun başlamadı. Oyunu Başlat düğmesine tıklayın.");
+        return;
+      }
+      if (isOnline && !isMyTurn()) {
+        showNotice("Sıra sende değil.");
+        return;
+      }
+
+      if (playerIndex !== gameState.currentPlayerIndex) {
+        showNotice("Sadece kendi sahandaki canavarlarını mezarlığa gönderebilirsin.");
+        return;
+      }
+
+      const player = gameState.players[playerIndex];
+      const monster = player.fieldMonsters[slotIndex];
+      if (!monster) return;
+
+      player.graveyard.push(monster);
+      player.fieldMonsters[slotIndex] = null;
+      gameState.attackedThisTurn[playerIndex][slotIndex] = false;
+
+      if (
+        gameState.selectedAttacker &&
+        gameState.selectedAttacker.playerIndex === playerIndex &&
+        gameState.selectedAttacker.slotIndex === slotIndex
+      ) {
+        gameState.selectedAttacker = null;
+      }
+
+      onMonsterSentToGraveyard(playerIndex, monster);
+
+      setLastAction(`${monster.name} mezarlığa gönderildi.`);
+      renderAndSync();
+    }
+
+    function sendSpellToGraveyard(playerIndex, slotIndex) {
+      if (gameState.gameOver) return;
+      if (!isGameStarted()) {
+        showNotice("Oyun başlamadı. Oyunu Başlat düğmesine tıklayın.");
+        return;
+      }
+      if (isOnline && !isMyTurn()) {
+        showNotice("Sıra sende değil.");
+        return;
+      }
+
+      if (playerIndex !== gameState.currentPlayerIndex) {
+        showNotice("Sadece kendi sahandaki büyüleri mezarlığa gönderebilirsin.");
+        return;
+      }
+
+      const player = gameState.players[playerIndex];
+      const spell = player.fieldSpells[slotIndex];
+      if (!spell) return;
+
+      player.graveyard.push(spell);
+      player.fieldSpells[slotIndex] = null;
+
+      setLastAction(`${spell.name} mezarlığa gönderildi.`);
+      renderAndSync();
+    }
+
+    // -------------------------
+    // Mezarlık modalı
+    // -------------------------
+    function openGraveyard(playerIndex) {
+      const modal = document.getElementById("graveyard-modal");
+      const titleEl = document.getElementById("graveyard-modal-title");
+      const listEl = document.getElementById("graveyard-modal-list");
+
+      const player = gameState.players[playerIndex];
+      titleEl.textContent = `${getPlayerLabel(playerIndex)} Mezarlığı`;
+
+      if (player.graveyard.length === 0) {
+        listEl.innerHTML = "<li>Mezarlık boş.</li>";
+      } else {
+        listEl.innerHTML = player.graveyard
+          .map((card, idx) => {
+            if (card.type === "monster") {
+              const cls = card.cardClass ? ` | Sınıf ${card.cardClass}` : "";
+              return `<li>${idx + 1}. ${card.name} — Seviye ${card.level} | Güç ${card.basePower}${cls}</li>`;
+            } else {
+              return `<li>${idx + 1}. [Büyü] ${card.name} — ${card.description || ""}</li>`;
+            }
+          })
+          .join("");
+      }
+
+      modal.classList.remove("hidden");
+    }
+
+
+    function closeGraveyard() {
+      document.getElementById("graveyard-modal").classList.add("hidden");
+    }
+
+    document.getElementById("graveyard-modal").addEventListener("click", (e) => {
+      if (e.target.id === "graveyard-modal") {
+        closeGraveyard();
+      }
+    });
+
+    function closeHiddenModal() {
+      document.getElementById("hidden-modal").classList.add("hidden");
+    }
+    document.getElementById("hidden-modal").addEventListener("click", (e) => {
+      if (e.target.id === "hidden-modal") {
+        closeHiddenModal();
+      }
+    });
+
+    document.getElementById("notice-modal").addEventListener("click", (e) => {
+      if (e.target.id === "notice-modal") {
+        closeNotice();
+      }
+    });
+
+    const TURN_LIMIT_MS = 120000;
+    let turnInterval = null;
+    function startTurnTimer() {
+      if (turnInterval) clearInterval(turnInterval);
+      turnInterval = setInterval(() => {
+        if (gameState.gameOver) return;
+        if (!gameState.turnDeadline) return;
+        const remaining = gameState.turnDeadline - Date.now();
+        if (remaining <= 0) {
+          setLastAction("süre dolduğu için tur sona erdi.");
+          endTurn(true);
+        } else {
+          render();
+        }
+      }, 1000);
+    }
+
+    // -------------------------
+    // Text status (alt yazılı özet)
+    // -------------------------
+    function buildTextStatus() {
+      const meIndex = mySeat;
+      const oppIndex = mySeat === 0 ? 1 : 0;
+      const me = gameState.players[meIndex];
+      const opp = gameState.players[oppIndex];
+
+      function monstersText(player, label, playerIndex) {
+        let lines = [];
+        lines.push(label + " Saha Canavarları:");
+        player.fieldMonsters.forEach((m, i) => {
+          if (!m) {
+            lines.push(`  Slot ${i + 1}: (Boş)`);
+          } else {
+            if (playerIndex !== mySeat && m.isFaceDown) {
+              lines.push(`  Slot ${i + 1}: [Gizli kart] (detaylar gizli)`);
+            } else {
+              const eff = getEffectivePower(playerIndex, i);
+              const cls = m.cardClass ? ` | Sınıf ${m.cardClass}` : "";
+              let effectText = m.description || "Efekt yok";
+              lines.push(
+                `  Slot ${i + 1}: ${m.name} | Seviye ${m.level} | Güç ${m.basePower} (Şu anki: ${eff})${cls} | ${effectText}`
+              );
+            }
+          }
+        });
+        return lines.join("\n");
+      }
+
+      const oppLines = [];
+      oppLines.push(`Rakip Oyuncu: ${getPlayerLabel(oppIndex)}`);
+      oppLines.push(`Can: ${opp.life}`);
+      oppLines.push(`Elindeki kart sayısı: ${opp.hand.length}`);
+      oppLines.push(`Deste: ${opp.deck.length} | Mezarlık: ${opp.graveyard.length}`);
+      oppLines.push(monstersText(opp, "Rakip", oppIndex));
+
+      const meLines = [];
+      meLines.push("");
+      meLines.push(`Sen: ${getPlayerLabel(meIndex)}`);
+      meLines.push(`Can: ${me.life}`);
+      meLines.push(`Elindeki kart sayısı: ${me.hand.length}`);
+      meLines.push(`Deste: ${me.deck.length} | Mezarlık: ${me.graveyard.length}`);
+      meLines.push(monstersText(me, "Senin", meIndex));
+
+      if (gameState.peaceTurnsRemaining > 0) {
+        meLines.push("");
+        meLines.push(`Barış Sözleşmesi aktif: ${gameState.peaceTurnsRemaining} oyun turu kaldı.`);
+      }
+
+      return oppLines.join("\n") + "\n" + meLines.join("\n");
+    }
+
+    function renderAndSync(shouldBroadcast = true) {
+      render();
+      if (shouldBroadcast && isOnline && !suppressBroadcast) {
+        broadcastState();
+      }
+    }
+
+    // -------------------------
+    // Panel render
+    // -------------------------
+    function renderPlayerPanel(playerIndex, isTopPanel = false) {
+      const player = gameState.players[playerIndex];
+      const isCurrent = gameState.currentPlayerIndex === playerIndex;
+      const selAtk = gameState.selectedAttacker;
+      const selSpell = gameState.selectedSpell;
+      const hideHand = isOnline && playerIndex !== mySeat;
+
+      let html = "";
+
+      html += `<div class="player-header">`;
+      html += `<div><strong>${getPlayerLabel(playerIndex)}</strong></div>`;
+      html += `<div>`;
+      html += `Can: <strong>${player.life}</strong>`;
+      const isMyPanel = playerIndex === mySeat;
+      if (!gameState.gameOver) {
+        if (isCurrent && isMyPanel) {
+          html += ` &nbsp; <span class="badge-turn">Sıra Sende</span>`;
+        } else if (gameState.currentPlayerIndex !== playerIndex && isMyPanel) {
+          html += ` &nbsp; <span class="badge-turn opponent">Sıra Rakipte</span>`;
+        }
+      }
+      html += `</div>`;
+      html += `</div>`;
+
+      html += `<div class="info-line">`;
+      html += `Deste: ${player.deck.length} kart | El: ${player.hand.length} kart | Mezarlık: ${player.graveyard.length} kart`;
+      html += `</div>`;
+
+      html += `<div class="info-line">Şimdiye kadar açtığı en yüksek seviye: ${player.maxLevelPlayed}</div>`;
+      html += `<div class="info-line">Bitirdiği tur sayısı: ${gameState.turnsTaken[playerIndex]}</div>`;
+
+      if (selAtk && !gameState.gameOver) {
+        const atkIndex = selAtk.playerIndex;
+        const defIndex = atkIndex === 0 ? 1 : 0;
+        if (
+          playerIndex === defIndex &&
+          gameState.currentPlayerIndex === atkIndex &&
+          canDirectAttackOnOpponent(atkIndex) &&
+          canPlayerAttackThisTurn(atkIndex)
+        ) {
+          html += `<div class="info-line"><button class="small-button" onclick="directAttack()">Rakibe Doğrudan Saldır</button></div>`;
+        }
+      }
+
+      const isOpponentView = playerIndex !== mySeat;
+
+      function renderMonsters() {
+        let out = "";
+        out += `<div class="section-title">Canavar Alanı ${isOpponentView ? "(Rakip)" : "(5 slot)"}</div>`;
+        out += `<div class="zone-with-side">`;
+        out += `<div class="zone-row">`;
+        player.fieldMonsters.forEach((monster, idx) => {
+          out += `<div class="slot">`;
+          if (monster) {
+            const isFaceDown = monster.isFaceDown;
+            const hiddenFromViewer = isFaceDown && isOpponentView;
+            const effPower = getEffectivePower(playerIndex, idx);
+            const isSelectedAtk =
+              selAtk &&
+              selAtk.playerIndex === playerIndex &&
+              selAtk.slotIndex === idx;
+
+            out += `<div class="card monster">`;
+            const nameLabel = hiddenFromViewer
+              ? "Gizli Kart"
+              : (isFaceDown ? "Gizli Kart (Senin)" : monster.name);
+            const effectNameClass = (!hiddenFromViewer && !isFaceDown && monster.effect) ? " effect-name" : "";
+            out += `<div class="card-name${effectNameClass}">${isSelectedAtk ? "▶ " : ""}${nameLabel}</div>`;
+          if (hiddenFromViewer || isFaceDown) {
+            out += `<div class="card-level">?</div>`;
+            out += `<div class="card-class">Sınıf: ?</div>`;
+            out += `<div class="card-power">?</div>`;
+          } else {
+              out += `<div class="card-level">${"⭐".repeat(monster.level)}</div>`;
+              out += `<div class="card-class">Sınıf: ${monster.cardClass || "Yok"}</div>`;
+              out += `<div class="card-power">${monster.basePower}</div>`;
+              out += `<div class="card-power"><strong>${effPower}</strong></div>`;
+            }
+
+            out += `<div class="card-footer">`;
+
+            if (isCurrent && !gameState.gameOver && !hiddenFromViewer && playerIndex === mySeat) {
+              if (monster.isFaceDown) {
+                out += `<button class="small-button" onclick="revealMonster(${playerIndex}, ${idx})">Kartı Aç</button>`;
+              } else if (canPlayerAttackThisTurn(playerIndex)) {
+                const lockNote = monster.attackLockTurns > 0
+                  ? ` (Kilitli: ${monster.attackLockTurns})`
+                  : "";
+                const noAttack = monster.effect && monster.effect.cannotAttack;
+                const disabled = monster.attackLockTurns > 0 || noAttack;
+                const note = noAttack ? " (Saldırı Yok)" : lockNote;
+                out += `<button class="small-button" onclick="selectAttacker(${idx})" ${disabled ? "disabled" : ""}>Saldır!${note}</button>`;
+              }
+            }
+            if (!hiddenFromViewer && !isFaceDown) {
+              out += `<button class="small-button icon-button" onclick="viewOpenCard('monster', ${playerIndex}, ${idx})" aria-label="Detay" title="Detay"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="16.5" y1="16.5" x2="21" y2="21"></line></svg></button>`;
+            }
+            if (monster.isFaceDown && playerIndex === mySeat) {
+              out += `<button class="small-button" onclick="viewHiddenCard('monster', ${playerIndex}, ${idx})">Gizli Kartı Gör</button>`;
+            }
+
+            if (
+              selSpell &&
+              selSpell.mode === "destroyOppMonster" &&
+              selSpell.playerIndex === gameState.currentPlayerIndex &&
+              playerIndex !== selSpell.playerIndex &&
+              !gameState.gameOver
+            ) {
+              out += `<button class="small-button" onclick="applySpellToMonster(${playerIndex}, ${idx})">Bu Büyüyle Yok Et</button>`;
+            }
+            if (
+              selSpell &&
+              selSpell.mode === "debuffOppMonster" &&
+              selSpell.playerIndex === gameState.currentPlayerIndex &&
+              playerIndex !== selSpell.playerIndex &&
+              !gameState.gameOver
+            ) {
+              out += `<button class="small-button" onclick="applySpellToMonster(${playerIndex}, ${idx})">Bu Büyüyle Güç Azalt</button>`;
+            }
+            if (
+              selSpell &&
+              selSpell.mode === "lockOppMonsterAttack" &&
+              selSpell.playerIndex === gameState.currentPlayerIndex &&
+              playerIndex !== selSpell.playerIndex &&
+              !gameState.gameOver
+            ) {
+              out += `<button class="small-button" onclick="applySpellToMonster(${playerIndex}, ${idx})">Bu Büyüyle Kilitle</button>`;
+            }
+            if (
+              selSpell &&
+              selSpell.mode === "returnOwnMonsterToHand" &&
+              selSpell.playerIndex === gameState.currentPlayerIndex &&
+              playerIndex === selSpell.playerIndex &&
+              !gameState.gameOver
+            ) {
+              out += `<button class="small-button" onclick="applySpellToMonster(${playerIndex}, ${idx})">Bu Büyüyle Geri Al</button>`;
+            }
+            if (
+              selSpell &&
+              selSpell.mode === "swapMonsters" &&
+              selSpell.playerIndex === gameState.currentPlayerIndex &&
+              !gameState.gameOver
+            ) {
+              out += `<button class="small-button" onclick="selectSwapTarget(${playerIndex}, ${idx})">Bu Büyüyle Seç</button>`;
+            }
+            if (
+              selSpell &&
+              selSpell.mode === "buffOwnMonster" &&
+              selSpell.playerIndex === gameState.currentPlayerIndex &&
+              playerIndex === selSpell.playerIndex &&
+              !gameState.gameOver
+            ) {
+              out += `<button class="small-button" onclick="applySpellToMonster(${playerIndex}, ${idx})">Bu Büyüyle Güçlendir</button>`;
+            }
+
+            if (
+              selAtk &&
+              !gameState.gameOver &&
+              selAtk.playerIndex === gameState.currentPlayerIndex &&
+              playerIndex !== selAtk.playerIndex &&
+              canPlayerAttackThisTurn(gameState.currentPlayerIndex)
+            ) {
+              out += `<button class="small-button" onclick="attackMonster(${playerIndex}, ${idx})">Bu Canavara Saldır</button>`;
+            }
+
+            if (isCurrent && !gameState.gameOver && !hiddenFromViewer && playerIndex === mySeat) {
+              out += `<button class="small-button" onclick="sendMonsterToGraveyard(${playerIndex}, ${idx})">Mezara At</button>`;
+            }
+
+            out += "</div>";
+            out += "</div>";
+          } else {
+            out += "Boş Slot";
+          }
+          out += "</div>";
+        });
+        out += "</div>";
+        out += "<div class=\"side-zone\">" +
+          "<div class=\"side-zone-title\">Deste</div>" +
+          "<div class=\"side-zone-count\">" + player.deck.length + " kart</div>" +
+          "</div>";
+        out += "</div>";
+        return out;
+      }
+
+      function renderSpells() {
+        let out = "";
+        out += `<div class="section-title">Büyü / Tuzak Alanı${isOpponentView ? " (Rakip)" : ""}</div>`;
+        out += `<div class="zone-with-side">`;
+        out += `<div class="zone-row">`;
+        player.fieldSpells.forEach((spell, idx) => {
+          out += `<div class="slot">`;
+          if (spell) {
+            const isFaceDown = spell.isFaceDown;
+            const hiddenFromViewer = isFaceDown && isOpponentView;
+            out += `<div class="card spell">`;
+            out += `<div class="card-name">${hiddenFromViewer ? "Gizli Kart" : (isFaceDown ? "Gizli Büyü (Senin)" : spell.name)}</div>`;
+            if (hiddenFromViewer || isFaceDown) {
+              out += `<div class="card-level">Gizli</div>`;
+            } else {
+              out += `<div class="card-level">BÜYÜ</div>`;
+              out += `<div class="card-class">${spell.cardClass || ""}</div>`;
+              if (spell.description) {
+                out += `<div class="card-effect">${spell.description}</div>`;
+              }
+            }
+            out += `<div class="card-footer">`;
+            const canActivateTrap = spell.cardClass === "Tuzak Kartı" && !isOpponentView;
+            if (!gameState.gameOver && isFaceDown && !hiddenFromViewer && (isCurrent || canActivateTrap) && playerIndex === mySeat) {
+              out += `<button class="small-button" onclick="activateFaceDownSpell(${playerIndex}, ${idx})">Büyüyü Aç</button>`;
+            }
+            if (!hiddenFromViewer && !isFaceDown) {
+              out += `<button class="small-button icon-button" onclick="viewOpenCard('spell', ${playerIndex}, ${idx})" aria-label="Detay" title="Detay"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="16.5" y1="16.5" x2="21" y2="21"></line></svg></button>`;
+            }
+            if (isFaceDown && !hiddenFromViewer && playerIndex === mySeat) {
+              out += `<button class="small-button" onclick="viewHiddenCard('spell', ${playerIndex}, ${idx})">Gizli Kartı Gör</button>`;
+            }
+            if (isCurrent && !gameState.gameOver && !hiddenFromViewer && playerIndex === mySeat) {
+              out += `<button class="small-button" onclick="sendSpellToGraveyard(${playerIndex}, ${idx})">Mezara At</button>`;
+            }
+            out += `</div>`;
+            out += `</div>`;
+          } else {
+            out += `Boş Slot`;
+          }
+          out += `</div>`;
+        });
+        out += `</div>`;
+        out += `
+          <div class="side-zone graveyard-clickable" onclick="openGraveyard(${playerIndex})">
+            <div class="side-zone-title">Mezarlık</div>
+            <div class="side-zone-count">${player.graveyard.length} kart</div>
+            <div class="graveyard-hint">Tıkla</div>
+          </div>
+        `;
+        out += `</div>`;
+        return out;
+      }
+
+      function renderHand() {
+        let out = "";
+        if (isCurrent) {
+          out += `<div class="section-title">El (Sadece bu oyuncu turunda oynayabilir)</div>`;
+        } else {
+          out += `<div class="section-title">El</div>`;
+        }
+
+        out += `<div class="hand">`;
+        player.hand.forEach((card, idx) => {
+          const hidden = hideHand;
+          out += `<div class="slot hand-card">`;
+          const cardClass = hidden ? "card hidden-hand" : `card ${card.type}`;
+          out += `<div class="${cardClass}">`;
+          const effectNameClass = (!hidden && card.type === "monster" && card.effect) ? " effect-name" : "";
+          out += `<div class="card-name${effectNameClass}">${hidden ? "Oyun kartı" : card.name}</div>`;
+          if (!hidden) {
+            if (card.type === "monster") {
+              out += `<div class="card-level">${"⭐".repeat(card.level)}</div>`;
+              out += `<div class="card-class">Sınıf: ${card.cardClass || "Yok"}</div>`;
+              out += `<div class="card-power">${card.basePower}</div>`;
+            } else {
+              out += `<div class="card-level">BÜYÜ</div>`;
+              out += `<div class="card-class">${card.cardClass || ""}</div>`;
+            }
+          }
+
+          if (card.description && !hidden) {
+            out += `<div class="card-effect">${card.description}</div>`;
+          }
+
+            if (isCurrent && !gameState.gameOver && !hidden) {
+              out += `<div class="card-footer">`;
+              if (card.type === "monster") {
+                out += `<button class="small-button" onclick="playCardFromHand(${idx}, false)">Açık</button>`;
+                out += `<button class="small-button" onclick="playCardFromHand(${idx}, true)">Gizli</button>`;
+              } else if (card.type === "spell") {
+                if (card.cardClass === "Tuzak Kartı") {
+                  out += `<button class="small-button" onclick="setSpellFaceDownFromHand(${idx})">Gizli</button>`;
+                } else {
+                  out += `<button class="small-button" onclick="playSpellFromHand(${idx})">Açık</button>`;
+                  out += `<button class="small-button" onclick="setSpellFaceDownFromHand(${idx})">Gizli</button>`;
+                }
+              }
+              out += `<button class="small-button icon-button" onclick="viewOpenCard('hand', ${playerIndex}, ${idx})" aria-label="Detay" title="Detay"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="16.5" y1="16.5" x2="21" y2="21"></line></svg></button>`;
+              out += `</div>`;
+            }
+
+          out += `</div>`;
+          out += `</div>`;
+        });
+        out += `</div>`;
+        return out;
+      }
+
+      const sections = isTopPanel
+        ? [renderHand(), renderSpells(), renderMonsters()] // üst panel: el en yukarı, canavar merkeze yakın
+        : [renderMonsters(), renderSpells(), renderHand()]; // alt panel: canavar merkeze yakın
+
+      html += sections.join("");
+
+      return html;
+    }
+
+    function render() {
+      const p0 = document.getElementById("player-0-panel"); // alt panel
+      const p1 = document.getElementById("player-1-panel"); // üst panel
+
+      const bottomIndex = isOnline ? mySeat : 0;
+      const topIndex = isOnline ? (mySeat === 0 ? 1 : 0) : 1;
+
+      p0.innerHTML = renderPlayerPanel(bottomIndex, false);
+      p1.innerHTML = renderPlayerPanel(topIndex, true);
+
+      p0.classList.toggle("current-player", gameState.currentPlayerIndex === bottomIndex && !gameState.gameOver);
+      p1.classList.toggle("current-player", gameState.currentPlayerIndex === topIndex && !gameState.gameOver);
+
+      const info = document.getElementById("game-info");
+      let baseInfo =
+        "Tur: " + gameState.turnNumber +
+        " | Sıra: " + getPlayerLabel(gameState.currentPlayerIndex);
+      const turnOwner =
+        isOnline
+          ? (gameState.currentPlayerIndex === mySeat ? "Tur sende" : "Tur rakipte")
+          : "Tur sende";
+      baseInfo += " | " + turnOwner;
+      if (gameState.peaceTurnsRemaining > 0) {
+        baseInfo += " | Barış süresi: " + gameState.peaceTurnsRemaining + " tur";
+      }
+      if (gameState.lastAction) {
+        baseInfo += " | Son aksiyon: " + gameState.lastAction;
+      }
+      info.textContent = baseInfo;
+
+      document.getElementById("draw-btn").disabled = gameState.hasDrawnThisTurn || gameState.gameOver || !gameState.started || (isOnline && !isMyTurn());
+      document.getElementById("endturn-btn").disabled = gameState.gameOver || !gameState.started || (isOnline && !isMyTurn());
+      const startBtn = document.getElementById("start-btn");
+      if (startBtn) {
+        startBtn.disabled = gameState.started;
+      }
+
+      const textStatus = document.getElementById("text-status");
+      textStatus.textContent = "";
+
+      const histEl = document.getElementById("history-list");
+      if (histEl) {
+        histEl.innerHTML = gameState.history.length === 0
+          ? `<div class="history-item history-meta">Henüz hamle yok.</div>`
+          : gameState.history
+              .slice(0, 40)
+              .map((h) => {
+                const pl = getPlayerLabel(h.player || 0);
+                return `<div class="history-item"><div class="history-meta">Tur ${h.turn} • ${pl}</div><div>${h.text}</div></div>`;
+              })
+          .join("");
+      }
+
+      const timerEl = document.getElementById("turn-timer");
+      if (timerEl) {
+        if (gameState.turnDeadline && gameState.started) {
+          const remaining = Math.max(0, gameState.turnDeadline - Date.now());
+          const m = Math.floor(remaining / 60000);
+          const s = Math.floor((remaining % 60000) / 1000);
+          const tStr = `${m}:${s.toString().padStart(2, "0")}`;
+          timerEl.textContent = `Süre: ${tStr}`;
+        } else {
+          timerEl.textContent = "Süre: --:--";
+        }
+      }
+
+      const startInfoEl = document.getElementById("start-info");
+      if (startInfoEl) {
+        if (gameState.started) {
+          startInfoEl.textContent = "Oyun başladı.";
+        } else {
+          const meReady = gameState.ready[mySeat];
+          const otherSeat = mySeat === 0 ? 1 : 0;
+          const oppReady = gameState.ready[otherSeat];
+          if (!isOnline) {
+            startInfoEl.textContent = "Başlat'a basınca oyun başlar.";
+          } else if (meReady && !oppReady) {
+            startInfoEl.textContent = "Rakibin de Oyunu Başlat'a basması bekleniyor.";
+          } else if (!meReady && oppReady) {
+            startInfoEl.textContent = "Rakip hazır, Oyunu Başlat'a basıp başlatın.";
+          } else {
+            startInfoEl.textContent = "İki oyuncu da Oyunu Başlat'a basınca oyun başlar.";
+          }
+        }
+      }
+
+      updateGameOverModal();
+    }
+
+    // ---- Info panel toggle ----
+    const infoPanelEl = document.getElementById("info-panel");
+    const infoToggleBtn = document.getElementById("info-toggle-btn");
+    infoToggleBtn.addEventListener("click", () => {
+      const collapsed = infoPanelEl.classList.toggle("collapsed");
+      infoToggleBtn.textContent = collapsed ? "?" : "‹";
+    });
+
+    // -------------------------
+    // Event Listener'lar
+    // -------------------------
+    document.getElementById("draw-btn").addEventListener("click", drawCard);
+    document.getElementById("endturn-btn").addEventListener("click", () => endTurn(false));
+    document.getElementById("start-btn").addEventListener("click", tryStartGame);
+    document.getElementById("host-btn").addEventListener("click", createRoom);
+    document.getElementById("join-btn").addEventListener("click", joinRoom);
+    document.getElementById("rematch-btn").addEventListener("click", requestRematch);
+    document.getElementById("deck-builder-btn").addEventListener("click", openDeckBuilder);
+    document.getElementById("deck-select").addEventListener("change", onDeckSelectChange);
+    document.getElementById("register-btn").addEventListener("click", registerAccount);
+    document.getElementById("login-btn").addEventListener("click", loginAccount);
+    document.getElementById("logout-btn").addEventListener("click", logoutAccount);
+
+    async function initApp() {
+      await loadCurrentUser();
+      resetLocalGameState();
+      startTurnTimer();
+      renderAndSync(false);
+      applyViewportScale();
+      window.addEventListener("resize", applyViewportScale);
+    }
+
+    // Oyunu başlat
+    initApp();
+  </script>
+</body>
+</html>
